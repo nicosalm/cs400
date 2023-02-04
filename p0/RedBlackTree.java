@@ -2,12 +2,9 @@ import java.util.LinkedList;
 import java.util.Stack;
 
 /**
- * Red-Black Tree implementation with a Node inner class for representing the
- * nodes of the tree.
- * Currently, this implements a Binary Search Tree that we will turn into a red
- * black tree by
- * modifying the insert functionality. In this activity, we will start with
- * implementing rotations
+ * Red-Black Tree implementation with a Node inner class for representing the nodes of the tree.
+ * Currently, this implements a Binary Search Tree that we will turn into a red black tree by
+ * modifying the insert functionality. In this activity, we will start with implementing rotations
  * for the binary search tree insert algorithm.
  */
 public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionInterface<T> {
@@ -33,8 +30,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         }
 
         /**
-         * @return true when this node has a parent and is the right child of that
-         *         parent, otherwise
+         * @return true when this node has a parent and is the right child of that parent, otherwise
          *         return false
          */
         public boolean isRightChild() {
@@ -47,12 +43,9 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     protected int size = 0; // the number of values in the tree
 
     /**
-     * Performs a naive insertion into a binary search tree: adding the input data
-     * value to a new
-     * node in a leaf position within the tree. After this insertion, no attempt is
-     * made to
-     * restructure or balance the tree. This tree will not hold null references, nor
-     * duplicate data
+     * Performs a naive insertion into a binary search tree: adding the input data value to a new
+     * node in a leaf position within the tree. After this insertion, no attempt is made to
+     * restructure or balance the tree. This tree will not hold null references, nor duplicate data
      * values.
      * 
      * @param data to be added into this binary search tree
@@ -109,92 +102,51 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Helper method for performing a left rotation on the provided nodes within
-     * this tree. We use two pointers to represent the nodes in this method, x and
-     * y.
-     * 
-     * @param x the node to rotate
-     */
-    private void leftRotate(Node<T> x) {
-        Node<T> y = x.context[2]; // y = the right child of x
-        x.context[2] = y.context[1]; // set x to the left child of y
-        if (y.context[1] != null) { // if y has a left child
-            y.context[1].context[0] = x; // set the parent of y's left child to x
-        }
-        y.context[0] = x.context[0]; // set y's parent to x's parent
-        if (x.context[0] == null) { // if x is the root
-            root = y; // set y to the root
-        } else if (x == x.context[0].context[1]) { // if x is the left child of its parent
-            x.context[0].context[1] = y; // set y to the left child of x's parent
-        } else { // if x is the right child of its parent
-            x.context[0].context[2] = y; // set y to the right child of x's parent
-        }
-        y.context[1] = x; // set y to the left child of x
-        x.context[0] = y; // set x to the parent of y
-    }
-
-    /**
-     * Helper method for performing a right rotation on the provided nodes within
-     * this tree. We use two pointers to represent the nodes in this method, x and
-     * y.
-     * 
-     * @param x the node to rotate
-     */
-    public void rightRotate(Node<T> x) { // the same as leftRotate, but with left and right
-                                         // switched, so I won't comment it
-        Node<T> y = x.context[1];
-        x.context[1] = y.context[2];
-        if (y.context[2] != null) {
-            y.context[2].context[0] = x;
-        }
-        y.context[0] = x.context[0];
-        if (x.context[0] == null) {
-            root = y;
-        } else if (x == x.context[0].context[2]) {
-            x.context[0].context[2] = y;
-        } else {
-            x.context[0].context[1] = y;
-        }
-        y.context[2] = x;
-        x.context[0] = y;
-    }
-
-    /**
-     * Performs the rotation operation on the provided nodes within this tree. When
-     * the provided
-     * child is a left child of the provided parent, this method will perform a
-     * right rotation. When
-     * the provided child is a right child of the provided parent, this method will
-     * perform a left
-     * rotation. When the provided nodes are not related in one of these ways, this
-     * method will
+     * Performs the rotation operation on the provided nodes within this tree. When the provided
+     * child is a left child of the provided parent, this method will perform a right rotation. When
+     * the provided child is a right child of the provided parent, this method will perform a left
+     * rotation. When the provided nodes are not related in one of these ways, this method will
      * throw an IllegalArgumentException.
      * 
-     * @param child  is the node being rotated from child to parent position
-     *               (between these two node
+     * @param child  is the node being rotated from child to parent position (between these two node
      *               arguments)
-     * @param parent is the node being rotated from parent to child position
-     *               (between these two node
+     * @param parent is the node being rotated from parent to child position (between these two node
      *               arguments)
-     * @throws IllegalArgumentException when the provided child and parent node
-     *                                  references are not
+     * @throws IllegalArgumentException when the provided child and parent node references are not
      *                                  initially (pre-rotation) related that way
      */
     private void rotate(Node<T> child, Node<T> parent) throws IllegalArgumentException {
 
         // check if rotating child to parent position is even possible
-        // also, check if the provided nodes are even in this tree
         // also, check for null references
         if (child == null || parent == null || child.context[0] != parent) {
             throw new IllegalArgumentException(
                     "The provided child and parent node references are not related in the expected way.");
         }
-        // perform the (right/left) rotation via helper methods
-        if (child.isRightChild()) {
-            leftRotate(parent);
+        // decide whether to perform a left or right rotation
+        int a, b; // a and b are used to index into the context array
+        if (child.isRightChild()) { // we select them based on which child is being rotated
+            a = 1;
+            b = 2;
         } else {
-            rightRotate(parent);
+            a = 2;
+            b = 1;
         }
+        // perform the rotation
+        Node<T> grandparent = parent.context[0]; // !! grandparent might be null
+        if (grandparent != null) { // parent was not the root
+            // grandparent's old reference to parent becomes a reference to child
+            grandparent.context[grandparent.context[2] == parent ? 2 : 1] = child;
+        } else { // parent was the root
+            this.root = child; // child is the new root
+        }
+        child.context[0] = grandparent; // child's grandparent becomes its parent
+        parent.context[0] = child; // parent's parent becomes its child
+        parent.context[b] = child.context[a]; // parent's old child becomes its new grandchild
+        if (child.context[a] != null) { // if parent's old child is not null
+            child.context[a].context[0] = parent; // parent becomes its grandparent
+        } // otherwise, parent's old child was null and we don't need to do anything
+        child.context[a] = parent; // parent becomes its grandchild
     }
 
     /**
@@ -216,10 +168,8 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Removes the value data from the tree if the tree contains the value. This
-     * method will not
-     * attempt to rebalance the tree after the removal and should be updated once
-     * the tree uses
+     * Removes the value data from the tree if the tree contains the value. This method will not
+     * attempt to rebalance the tree after the removal and should be updated once the tree uses
      * Red-Black Tree insertion.
      * 
      * @return true if the value was remove, false if it didn't exist
@@ -286,8 +236,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Helper method that will replace a node with a replacement node. The
-     * replacement node may be
+     * Helper method that will replace a node with a replacement node. The replacement node may be
      * null to remove the node from the tree.
      * 
      * @param nodeToReplace   the node to replace
@@ -316,8 +265,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Helper method that will return the inorder successor of a node with two
-     * children.
+     * Helper method that will return the inorder successor of a node with two children.
      * 
      * @param node the node to find the successor for
      * @return the node that is the inorder successor of node
@@ -340,8 +288,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Helper method that will return the node in the tree that contains a specific
-     * value. Returns
+     * Helper method that will return the node in the tree that contains a specific value. Returns
      * null if there is no node that contains the value.
      * 
      * @return the node that contains the data, or null of no such node exists
@@ -366,16 +313,12 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * This method performs an inorder traversal of the tree. The string
-     * representations of each
-     * data value within this tree are assembled into a comma separated string
-     * within brackets
-     * (similar to many implementations of java.util.Collection, like
-     * java.util.ArrayList,
+     * This method performs an inorder traversal of the tree. The string representations of each
+     * data value within this tree are assembled into a comma separated string within brackets
+     * (similar to many implementations of java.util.Collection, like java.util.ArrayList,
      * LinkedList, etc).
      * 
-     * @return string containing the ordered values of this tree (in-order
-     *         traversal)
+     * @return string containing the ordered values of this tree (in-order traversal)
      */
     public String toInOrderString() {
         // generate a string of all values of the tree in (ordered) in-order
@@ -403,12 +346,9 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * This method performs a level order traversal of the tree. The string
-     * representations of each
-     * data value within this tree are assembled into a comma separated string
-     * within brackets
-     * (similar to many implementations of java.util.Collection). This method will
-     * be helpful as a
+     * This method performs a level order traversal of the tree. The string representations of each
+     * data value within this tree are assembled into a comma separated string within brackets
+     * (similar to many implementations of java.util.Collection). This method will be helpful as a
      * helper for the debugging and testing of your rotation implementation.
      * 
      * @return string containing the values of this tree in level order
