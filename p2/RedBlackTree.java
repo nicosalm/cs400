@@ -483,24 +483,48 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
      */
     @Test
     public void testCase1Enforce() {
-        RedBlackTree<Integer> test = new RedBlackTree<>();
-        // insert nodes such that case 1 is true
-        test.insert(0);
-        test.insert(1);
-        test.insert(2);
-        test.insert(3);
-        test.insert(4); // triggers case 1
+        // left rotation
+        {
+            RedBlackTree<Integer> test = new RedBlackTree<>();
+            // insert nodes such that case 1 is true
+            test.insert(0);
+            test.insert(1);
+            test.insert(2);
+            test.insert(3);
+            test.insert(4); // triggers case 1
 
-        // check that the tree is in the correct state
-        assertEquals("[ 0, 1, 2, 3, 4 ]", test.toInOrderString());
-        assertEquals("[ 1, 0, 3, 2, 4 ]", test.toLevelOrderString());
+            // check that the tree is in the correct state
+            assertEquals("[ 0, 1, 2, 3, 4 ]", test.toInOrderString());
+            assertEquals("[ 1, 0, 3, 2, 4 ]", test.toLevelOrderString());
 
-        // check that the colors are correct
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(1, test.root.context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].blackHeight);
+            // check that the colors are correct
+            assertEquals(1, test.root.blackHeight);
+            assertEquals(1, test.root.context[1].blackHeight);
+            assertEquals(1, test.root.context[2].blackHeight);
+            assertEquals(0, test.root.context[2].context[1].blackHeight);
+            assertEquals(0, test.root.context[2].context[2].blackHeight);
+        }
+        // right rotation
+        {
+            RedBlackTree<Integer> test = new RedBlackTree<>();
+            // insert nodes such that case 1 is true
+            test.insert(9);
+            test.insert(10);
+            test.insert(11);
+            test.insert(8);
+            test.insert(7); // triggers case 1
+
+            // check that the tree is in the correct state
+            assertEquals("[ 7, 8, 9, 10, 11 ]", test.toInOrderString());
+            assertEquals("[ 10, 8, 11, 7, 9 ]", test.toLevelOrderString());
+
+            // check that the colors are correct
+            assertEquals(1, test.root.blackHeight);
+            assertEquals(1, test.root.context[1].blackHeight);
+            assertEquals(1, test.root.context[2].blackHeight);
+            assertEquals(0, test.root.context[1].context[1].blackHeight);
+            assertEquals(0, test.root.context[1].context[2].blackHeight);
+        }
     }
 
     /**
@@ -510,30 +534,56 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
      */
     @Test
     public void testCase2Enforce() {
-        RedBlackTree<Integer> test = new RedBlackTree<>();
-        // insert nodes such that case 2 is true
-        test.insert(0);
-        test.insert(2);
-        test.insert(4);
-        test.insert(6);
-        test.insert(5); // triggers case 2
+        // left rotation
+        {
+            RedBlackTree<Integer> test = new RedBlackTree<>();
+            // insert nodes such that case 2 is true
+            test.insert(0);
+            test.insert(2);
+            test.insert(4);
+            test.insert(6);
+            test.insert(5); // triggers case 2
 
-        // check that the tree is in the correct state
-        assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
+            // check that the tree is in the correct state
+            assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
+            assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
 
-        // check that the colors are correct
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(1, test.root.context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].blackHeight);
+            // check that the colors are correct
+            assertEquals(1, test.root.blackHeight);
+            assertEquals(1, test.root.context[1].blackHeight);
+            assertEquals(1, test.root.context[2].blackHeight);
+            assertEquals(0, test.root.context[2].context[1].blackHeight);
+            assertEquals(0, test.root.context[2].context[2].blackHeight);
+        }
+        // right rotation
+        {
+            RedBlackTree<Integer> test = new RedBlackTree<>();
+            // insert nodes such that case 2 is true
+            test.insert(9);
+            test.insert(7);
+            test.insert(5);
+            test.insert(3);
+            test.insert(4); // triggers case 2, right rotation
+
+            // check that the tree is in the correct state
+            assertEquals("[ 3, 4, 5, 7, 9 ]", test.toInOrderString());
+            assertEquals("[ 7, 4, 9, 3, 5 ]", test.toLevelOrderString());
+
+            // check that the colors are correct
+            assertEquals(1, test.root.blackHeight);
+            assertEquals(1, test.root.context[1].blackHeight);
+            assertEquals(1, test.root.context[2].blackHeight);
+            assertEquals(0, test.root.context[1].context[1].blackHeight);
+            assertEquals(0, test.root.context[1].context[2].blackHeight);
+        }
     }
 
     /**
      * JUnit test case for the enforceRBTreePropertiesAfterInsert method.
      * Case: Parents sibling is red
      * Response: Recolor parent, grandparent and uncle; recurse
+     * Also, miscellanous tests to check that the tree is in the correct state after
+     * several insertions
      */
     @Test
     public void testCase3Enforce() {
@@ -553,6 +603,65 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         assertEquals(1, test.root.context[1].blackHeight);
         assertEquals(1, test.root.context[2].blackHeight);
         assertEquals(0, test.root.context[2].context[2].blackHeight);
+
+        // other misc. checks
+        test.insert(5);
+
+        // check that the tree is in the correct state
+        assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
+        assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
+
+        // check that the colors are correct
+        assertEquals(1, test.root.blackHeight);
+        assertEquals(1, test.root.context[1].blackHeight);
+        assertEquals(1, test.root.context[2].blackHeight);
+        assertEquals(0, test.root.context[2].context[1].blackHeight);
+        assertEquals(0, test.root.context[2].context[2].blackHeight);
+
+        // left left case
+        test.insert(1);
+        assertEquals("[ 0, 1, 2, 4, 5, 6 ]", test.toInOrderString());
+        assertEquals("[ 2, 0, 5, 1, 4, 6 ]", test.toLevelOrderString());
+        assertEquals(1, test.root.blackHeight);
+        assertEquals(1, test.root.context[1].blackHeight);
+        assertEquals(1, test.root.context[2].blackHeight);
+        assertEquals(0, test.root.context[2].context[1].blackHeight);
+        assertEquals(0, test.root.context[2].context[2].blackHeight);
+
+        // left right case
+        test.insert(3);
+        assertEquals("[ 0, 1, 2, 3, 4, 5, 6 ]", test.toInOrderString());
+        assertEquals("[ 2, 0, 5, 1, 4, 6, 3 ]", test.toLevelOrderString());
+        assertEquals(1, test.root.blackHeight);
+        assertEquals(1, test.root.context[1].blackHeight);
+        assertEquals(0, test.root.context[2].blackHeight);
+        assertEquals(1, test.root.context[2].context[1].blackHeight);
+        assertEquals(1, test.root.context[2].context[2].blackHeight);
+        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
+
+        // right right case
+        test.insert(7);
+        assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7 ]", test.toInOrderString());
+        assertEquals("[ 2, 0, 5, 1, 4, 6, 3, 7 ]", test.toLevelOrderString());
+        assertEquals(1, test.root.blackHeight);
+        assertEquals(1, test.root.context[1].blackHeight);
+        assertEquals(0, test.root.context[2].blackHeight);
+        assertEquals(1, test.root.context[2].context[1].blackHeight);
+        assertEquals(1, test.root.context[2].context[2].blackHeight);
+        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
+        assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
+
+        // right left case
+        test.insert(8);
+        assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]", test.toInOrderString());
+        assertEquals("[ 2, 0, 5, 1, 4, 7, 3, 6, 8 ]", test.toLevelOrderString());
+        assertEquals(1, test.root.blackHeight);
+        assertEquals(1, test.root.context[1].blackHeight);
+        assertEquals(0, test.root.context[2].blackHeight);
+        assertEquals(1, test.root.context[2].context[1].blackHeight);
+        assertEquals(1, test.root.context[2].context[2].blackHeight);
+        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
+        assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
     }
 
     /**
