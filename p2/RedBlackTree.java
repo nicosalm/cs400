@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Stack;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Red-Black Tree implementation with a Node inner class for representing the
@@ -486,6 +487,10 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         // left rotation
         {
             RedBlackTree<Integer> test = new RedBlackTree<>();
+
+            // ensure that the tree is empty
+            assertTrue(test.isEmpty(), "Tree should be empty but is not.");
+
             // insert nodes such that case 1 is true
             test.insert(0);
             test.insert(1);
