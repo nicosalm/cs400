@@ -6,11 +6,10 @@
 // Lecturer: Gary Dahl
 // Notes to Grader: NONE
 
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Stack;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Red-Black Tree implementation with a Node inner class for representing the
@@ -20,8 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * modifying the insert functionality. In this activity, we will start with
  * implementing rotations
  * for the binary search tree insert algorithm.
+ * 
+ * @author Nico S. and Course Staff
  */
-public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionInterface<T> {
+public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionInterface<T>, Iterable<T> {
 
     /**
      * This class represents a node holding a single value within a binary tree.
@@ -50,7 +51,6 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         public boolean isRightChild() {
             return context[0] != null && context[0].context[2] == this;
         }
-
     }
 
     protected Node<T> root; // reference to root node of tree, null when empty
@@ -260,6 +260,8 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         root.blackHeight = 1; // root is always black
     }
 
+    // < –––––––––––––- REMOVE ––––––––––––––––––>
+
     /**
      * Removes the value data from the tree if the tree contains the value. This
      * method will attempt to rebalance the tree after the removal and should be
@@ -270,45 +272,77 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
      * @throws IllegalArgumentException when data is not stored in the tree
      */
     public boolean remove(T data) throws NullPointerException, IllegalArgumentException {
-        // null references will not be stored within this tree
-        if (data == null) {
-            throw new NullPointerException("This RedBlackTree cannot store null references.");
-        } else {
-            Node<T> nodeWithData = this.findNodeWithData(data);
-            // throw exception if node with data does not exist
-            if (nodeWithData == null) {
-                throw new IllegalArgumentException(
-                        "The following value is not in the tree and cannot be deleted: "
-                                + data.toString());
-            }
-            boolean hasRightChild = (nodeWithData.context[2] != null);
-            boolean hasLeftChild = (nodeWithData.context[1] != null);
-            if (hasRightChild && hasLeftChild) {
-                // has 2 children
-                Node<T> successorNode = this.findMinOfRightSubtree(nodeWithData);
-                // replace value of node with value of successor node
-                nodeWithData.data = successorNode.data;
-                // remove successor node
-                if (successorNode.context[2] == null) {
-                    // successor has no children, replace with null
-                    this.replaceNode(successorNode, null);
-                } else {
-                    // successor has a right child, replace successor with its child
-                    this.replaceNode(successorNode, successorNode.context[2]);
-                }
-            } else if (hasRightChild) {
-                // only right child, replace with right child
-                this.replaceNode(nodeWithData, nodeWithData.context[2]);
-            } else if (hasLeftChild) {
-                // only left child, replace with left child
-                this.replaceNode(nodeWithData, nodeWithData.context[1]);
+        Node<T> node = root;
+
+        // Find the node to be deleted
+        while (node != null && node.data != data) {
+            // Traverse the tree to the left or right depending on the key
+            if (data.compareTo((T) node.data) < 0) {
+                node = node.context[1];
             } else {
-                // no children, replace node with a null node
-                this.replaceNode(nodeWithData, null);
+                node = node.context[2];
             }
-            this.size--;
-            enforceRBTreePropertiesAfterDeletion(nodeWithData);
-            return true;
+        }
+
+        // Node not found?
+        if (node == null) {
+            return false;
+        }
+
+        // Node found, delete it and fix the tree; keep track of the node that was moved
+        // up to replace the deleted node and the color of the deleted node
+        Node<T> movedUpNode;
+        int deletedNodeColor;
+
+        // Node has zero or one child
+        if (node.context[1] == null || node.context[2] == null) {
+            movedUpNode = deleteNodeWithZeroOrOneChild(node);
+            deletedNodeColor = node.blackHeight;
+        }
+
+        // Node has two children
+        else {
+            // Find minimum node of right subtree ("inorder successor" of current node)
+            Node<T> successorNode = findMinOfRightSubtree(node.context[2]);
+
+            // Copy inorder successor's data to current node (keep its color!)
+            node.data = successorNode.data;
+
+            // Delete inorder successor just as we would delete a node with 0 or 1 child
+            movedUpNode = deleteNodeWithZeroOrOneChild(successorNode);
+            deletedNodeColor = successorNode.blackHeight;
+        }
+
+        if (deletedNodeColor == 1) {
+            fixRedBlackPropertiesAfterDelete(movedUpNode);
+
+            // Remove the temporary NIL node
+            if (movedUpNode.getClass() == NilNode.class) {
+                replaceNode(movedUpNode, null);
+            }
+        }
+        return true;
+    }
+
+    private Node<T> deleteNodeWithZeroOrOneChild(Node<T> node) {
+        // Node has ONLY a left child: replace by its left child
+        if (node.context[1] != null) {
+            replaceNode(node, node.context[1]);
+            return node.context[1]; // moved-up node
+        }
+
+        // Node has ONLY a right child: replace by its right child
+        else if (node.context[2] != null) {
+            replaceNode(node, node.context[2]);
+            return node.context[2]; // moved-up node
+        }
+
+        // Node has no children: replace by NIL node
+        else {
+            @SuppressWarnings("unchecked")
+            Node<T> newChild = node.blackHeight == 1 ? new NilNode() : null;
+            replaceNode(node, newChild);
+            return newChild;
         }
     }
 
@@ -318,10 +352,184 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
      * Intended to be used by the remove method to ensure that the tree is
      * properly updated after a node is removed.
      * 
+     * In contrast to the enforceRBTreePropertiesAfterInsert method, this method
+     * does
+     * not care about the uncle of the node being removed. It only cares about the
+     * sibling of the node being removed.
+     * 
+     * Cases: 1. deleted node is root, 2. sibling is red, 3. sibling is black with 2
+     * black children; parent is red, 4. sibling is black and has two black
+     * children, parent is black, 5. sibling is black and has at least one red
+     * child, "outer nephew" is black, 6. sibling is black and has at least one red
+     * child, "outer nephew" is red. Behold, the cases!
+     * 
      * @param node the node to replace
      */
-    public void enforceRBTreePropertiesAfterDeletion(Node<T> node) {
-        return; // TODO implement this method
+    private void fixRedBlackPropertiesAfterDelete(Node<T> node) {
+        // Case 1: Examined node is root, end of recursion
+        if (node == root) {
+            // Uncomment the following line if you want to enforce black roots (rule 2):
+            // node.color = BLACK;
+            return;
+        }
+
+        Node<T> sibling = getSibling(node);
+
+        // Case 2: Red sibling
+        if (sibling.blackHeight == 0) {
+            sibling.blackHeight = 1;
+            node.context[0].blackHeight = 0;
+
+            // ... and rotate
+            if (node == node.context[0].context[1]) {
+                // use rotate() method to rotate left an
+                rotateLeft(node.context[0]);
+            } else {
+                rotateRight(node.context[0]);
+            }
+            sibling = getSibling(node); // Get new sibling for fall-through to cases 3-6
+        }
+
+        // Cases 3+4: Black sibling with two black children
+        if (isBlack(sibling.context[1]) && isBlack(sibling.context[2])) {
+            sibling.blackHeight = 0;
+
+            // Case 3: Black sibling with two black children + red parent
+            if (node.context[0].blackHeight == 0) {
+                node.context[0].blackHeight = 1;
+            }
+
+            // Case 4: Black sibling with two black children + black parent
+            else {
+                fixRedBlackPropertiesAfterDelete(node.context[0]);
+            }
+        }
+
+        // Case 5+6: Black sibling with at least one red child
+        else {
+            handleBlackSiblingWithAtLeastOneRedChild(node, sibling);
+        }
+    }
+
+    private void handleBlackSiblingWithAtLeastOneRedChild(Node<T> node, Node<T> sibling) {
+        boolean nodeIsLeftChild = node == node.context[0].context[1];
+
+        // Case 5: Black sibling with at least one red child + "outer nephew" is black
+        // --> Recolor sibling and its child, and rotate around sibling
+        if (nodeIsLeftChild && isBlack(sibling.context[2])) {
+            sibling.context[1].blackHeight = 0;
+            rotateRight(sibling);
+            sibling = node.context[0].context[2];
+        } else if (!nodeIsLeftChild && isBlack(sibling.context[1])) {
+            sibling.context[2].blackHeight = 1;
+            sibling.blackHeight = 0;
+            rotateLeft(sibling);
+            sibling = node.context[0].context[1];
+        }
+
+        // Fall-through to case 6...
+
+        // Case 6: Black sibling with at least one red child + "outer nephew" is red
+        // --> Recolor sibling + parent + sibling's child, and rotate around parent
+        sibling.blackHeight = node.context[0].blackHeight;
+        node.context[0].blackHeight = 1;
+        if (nodeIsLeftChild) {
+            sibling.context[2].blackHeight = 1;
+            rotateLeft(node.context[0]);
+        } else {
+            sibling.context[1].blackHeight = 1;
+            rotateRight(node.context[0]);
+        }
+    }
+
+    private Node<T> getSibling(Node<T> node) {
+        Node<T> parent = node.context[0];
+        if (node == parent.context[1]) {
+            return parent.context[2];
+        } else if (node == parent.context[2]) {
+            return parent.context[1];
+        } else {
+            throw new IllegalStateException("Parent is not a child of its grandparent");
+        }
+    }
+
+    private boolean isBlack(Node<T> node) {
+        return node == null || node.blackHeight == 1;
+    }
+
+    private static class NilNode extends Node {
+        private NilNode() {
+            super(0);
+            this.blackHeight = 1;
+        }
+    }
+
+    // < –––––––––––––- END REMOVE ––––––––––––––––––>
+    // < –––––––––––––- BEGIN REMOVE HELPERS ––––––––––––––––––>
+    private void rotateRight(Node<T> node) {
+        Node<T> parent = node.context[0];
+        Node<T> leftChild = node.context[1];
+
+        node.context[1] = leftChild.context[2];
+        if (leftChild.context[2] != null) {
+            leftChild.context[2].context[0] = node;
+        }
+
+        leftChild.context[2] = node;
+        node.context[0] = leftChild;
+
+        replaceParentsChild(parent, node, leftChild);
+    }
+
+    private void rotateLeft(Node<T> node) {
+        Node<T> parent = node.context[0];
+        Node<T> rightChild = node.context[2];
+
+        node.context[2] = rightChild.context[1];
+        if (rightChild.context[1] != null) {
+            rightChild.context[1].context[0] = node;
+        }
+
+        rightChild.context[1] = node;
+        node.context[0] = rightChild;
+
+        replaceParentsChild(parent, node, rightChild);
+    }
+
+    private void replaceParentsChild(Node<T> parent, Node<T> oldChild, Node<T> newChild) {
+        if (parent == null) {
+            root = newChild;
+        } else if (parent.context[1] == oldChild) {
+            parent.context[1] = newChild;
+        } else if (parent.context[2] == oldChild) {
+            parent.context[2] = newChild;
+        } else {
+            throw new IllegalStateException("Node is not a child of its parent");
+        }
+
+        if (newChild != null) {
+            newChild.context[0] = parent;
+        }
+    }
+    // < –––––––––––––- END REMOVE HELPERS ––––––––––––––––––>
+
+    public Node<T> get(T data) {
+        // throw exception if data is null, as null references are not allowed or return
+        // node
+        if (data == null) {
+            throw new NullPointerException("This RedBlackTree cannot store null references.");
+            // throw exception if node with data does not exist
+        } else {
+            Node<T> nodeWithData = this.findNodeWithData(data);
+            // throw exception if node with data does not exist
+            if (nodeWithData == null) {
+                throw new NoSuchElementException(
+                        "The following value is not in the tree and cannot be deleted: "
+                                + data.toString());
+            }
+            // return node if all checks pass
+            return nodeWithData;
+        }
     }
 
     /**
@@ -476,6 +684,11 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         }
         sb.append(" ]");
         return sb.toString();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public String toString() {
