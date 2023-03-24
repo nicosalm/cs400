@@ -57,71 +57,6 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     protected int size = 0; // the number of values in the tree
 
     /**
-     * Performs a naive insertion into a binary search tree: adding the input data
-     * value to a new
-     * node in a leaf position within the tree. After this insertion, no attempt is
-     * made to
-     * restructure or balance the tree. This tree will not hold null references, nor
-     * duplicate data
-     * values.
-     * 
-     * @param data to be added into this binary search tree
-     * @return true if the value was inserted, false if not
-     * @throws NullPointerException     when the provided data argument is null
-     * @throws IllegalArgumentException when data is already contained in the tree
-     */
-    public boolean insert(T data) throws NullPointerException, IllegalArgumentException {
-        // null references cannot be stored within this tree
-        if (data == null)
-            throw new NullPointerException("This RedBlackTree cannot store null references.");
-
-        Node<T> newNode = new Node<>(data);
-        if (this.root == null) {
-            // add first node to an empty tree
-            root = newNode;
-            size++;
-            enforceRBTreePropertiesAfterInsert(newNode);
-            return true;
-        } else {
-            // insert into subtree
-            Node<T> current = this.root;
-            while (true) {
-                int compare = newNode.data.compareTo(current.data);
-                if (compare == 0) {
-                    throw new IllegalArgumentException(
-                            "This RedBlackTree already contains value " + data.toString());
-                } else if (compare < 0) {
-                    // insert in left subtree
-                    if (current.context[1] == null) {
-                        // empty space to insert into
-                        current.context[1] = newNode;
-                        newNode.context[0] = current;
-                        this.size++;
-                        enforceRBTreePropertiesAfterInsert(newNode);
-                        return true;
-                    } else {
-                        // no empty space, keep moving down the tree
-                        current = current.context[1];
-                    }
-                } else {
-                    // insert in right subtree
-                    if (current.context[2] == null) {
-                        // empty space to insert into
-                        current.context[2] = newNode;
-                        newNode.context[0] = current;
-                        this.size++;
-                        enforceRBTreePropertiesAfterInsert(newNode);
-                        return true;
-                    } else {
-                        // no empty space, keep moving down the tree
-                        current = current.context[2];
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Performs the rotation operation on the provided nodes within this tree. When
      * the provided
      * child is a left child of the provided parent, this method will perform a
@@ -182,29 +117,153 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     /**
-     * Get the size of the tree (its number of nodes).
+     * Helper method that will replace a node with a replacement node. The
+     * replacement node may be
+     * null to remove the node from the tree.
      * 
-     * @return the number of nodes in the tree
+     * @param nodeToReplace   the node to replace
+     * @param replacementNode the replacement for the node (may be null)
      */
-    public int size() {
-        return size;
+    protected void replaceNode(Node<T> nodeToReplace, Node<T> replacementNode) {
+        if (nodeToReplace == null) {
+            throw new NullPointerException("Cannot replace null node.");
+        }
+        if (nodeToReplace.context[0] == null) {
+            // we are replacing the root
+            if (replacementNode != null)
+                replacementNode.context[0] = null;
+            this.root = replacementNode;
+        } else {
+            // set the parent of the replacement node
+            if (replacementNode != null)
+                replacementNode.context[0] = nodeToReplace.context[0];
+            // do we have to attach a new left or right child to our parent?
+            if (nodeToReplace.isRightChild()) {
+                nodeToReplace.context[0].context[2] = replacementNode;
+            } else {
+                nodeToReplace.context[0].context[1] = replacementNode;
+            }
+        }
     }
 
     /**
-     * Method to check if the tree is empty (does not contain any node).
+     * Performs a naive insertion into a binary search tree: adding the input data
+     * alue to a new node in a leaf position within the tree. After this insertion,
+     * attempt is made to restructure or balance the tree. This tree will not hold
+     * null references, nor uplicate data alues.
      * 
-     * @return true of this.size() return 0, false if this.size() > 0
+     * @param data to be added into this binary search tree
+     * @return true if the value was inserted, false if not
+     * @throws NullPointerException     when the provided data argument is null
+     * @throws IllegalArgumentException when data is already contained in the tree
      */
-    public boolean isEmpty() {
-        return this.size() == 0;
+    public boolean insert(T data) throws NullPointerException, IllegalArgumentException {
+        // null references cannot be stored within this tree
+        if (data == null)
+            throw new NullPointerException("This RedBlackTree cannot store null references.");
+
+        Node<T> newNode = new Node<>(data);
+        if (this.root == null) {
+            // add first node to an empty tree
+            root = newNode;
+            size++;
+            enforceRBTreePropertiesAfterInsert(newNode);
+            return true;
+        } else {
+            // insert into subtree
+            Node<T> current = this.root;
+            while (true) {
+                int compare = newNode.data.compareTo(current.data);
+                if (compare == 0) {
+                    throw new IllegalArgumentException(
+                            "This RedBlackTree already contains value " + data.toString());
+                } else if (compare < 0) {
+                    // insert in left subtree
+                    if (current.context[1] == null) {
+                        // empty space to insert into
+                        current.context[1] = newNode;
+                        newNode.context[0] = current;
+                        this.size++;
+                        enforceRBTreePropertiesAfterInsert(newNode);
+                        return true;
+                    } else {
+                        // no empty space, keep moving down the tree
+                        current = current.context[1];
+                    }
+                } else {
+                    // insert in right subtree
+                    if (current.context[2] == null) {
+                        // empty space to insert into
+                        current.context[2] = newNode;
+                        newNode.context[0] = current;
+                        this.size++;
+                        enforceRBTreePropertiesAfterInsert(newNode);
+                        return true;
+                    } else {
+                        // no empty space, keep moving down the tree
+                        current = current.context[2];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * The job of this enforceRBTreePropertiesAfterInsert method is to resolve any
+     * red-black tree property violations that are introduced by inserting each new
+     * new node into a red-black tree. This method will be called recursively.
+     * 
+     * @param node
+     */
+    public void enforceRBTreePropertiesAfterInsert(Node<T> node) {
+        if (root == node) { // if new node is root, set to black and return
+            root.blackHeight = 1;
+            return;
+        }
+        Node<T> p = node.context[0]; // parent pointer
+        Node<T> gP = p.context[0]; // grandparent pointer
+        if (p == root || p.blackHeight != 0) { // if parent is black,
+            return;
+        }
+        Node<T> u = null; // create uncle pointer and assign if possible
+        if (p.isRightChild()) {
+            u = gP.context[1];
+        } else {
+            u = gP.context[2];
+        }
+
+        // if parent is red
+        if (node.blackHeight == 0 && p.blackHeight == 0) {
+            // if uncle is red
+            if (u != null && u.blackHeight == 0) {
+                // recolor
+                p.blackHeight = 1;
+                u.blackHeight = 1;
+                gP.blackHeight = 0;
+                enforceRBTreePropertiesAfterInsert(gP);
+            } else {
+                // if uncle is black
+                if (!p.isRightChild() && node.isRightChild()
+                        || p.isRightChild() && !node.isRightChild()) {
+                    // different sides, rotate parent and newNode
+                    rotate(node, p);
+                    enforceRBTreePropertiesAfterInsert(p);
+                } else {
+                    // same sides, rotate grandparent and parent and recolor
+                    int gPHeight = gP.blackHeight;
+                    gP.blackHeight = p.blackHeight;
+                    p.blackHeight = gPHeight;
+                    rotate(p, gP);
+                }
+            }
+        }
+        root.blackHeight = 1; // root is always black
     }
 
     /**
      * Removes the value data from the tree if the tree contains the value. This
-     * method will not
-     * attempt to rebalance the tree after the removal and should be updated once
-     * the tree uses
-     * Red-Black Tree insertion.
+     * method will attempt to rebalance the tree after the removal and should be
+     * updated once the tree uses Red-Black Tree insertion.
      * 
      * @return true if the value was remove, false if it didn't exist
      * @throws NullPointerException     when the provided data argument is null
@@ -248,8 +307,39 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
                 this.replaceNode(nodeWithData, null);
             }
             this.size--;
+            enforceRBTreePropertiesAfterDeletion(nodeWithData);
             return true;
         }
+    }
+
+    /**
+     * Helper method that will replace a node with a replacement node. The
+     * replacement node may be null to remove the node from the tree.
+     * Intended to be used by the remove method to ensure that the tree is
+     * properly updated after a node is removed.
+     * 
+     * @param node the node to replace
+     */
+    public void enforceRBTreePropertiesAfterDeletion(Node<T> node) {
+        return; // TODO implement this method
+    }
+
+    /**
+     * Get the size of the tree (its number of nodes).
+     * 
+     * @return the number of nodes in the tree
+     */
+    public int size() {
+        return size;
+    }
+
+    /**
+     * Method to check if the tree is empty (does not contain any node).
+     * 
+     * @return true of this.size() return 0, false if this.size() > 0
+     */
+    public boolean isEmpty() {
+        return this.size() == 0;
     }
 
     /**
@@ -266,36 +356,6 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
             Node<T> nodeWithData = this.findNodeWithData(data);
             // return false if the node is null, true otherwise
             return (nodeWithData != null);
-        }
-    }
-
-    /**
-     * Helper method that will replace a node with a replacement node. The
-     * replacement node may be
-     * null to remove the node from the tree.
-     * 
-     * @param nodeToReplace   the node to replace
-     * @param replacementNode the replacement for the node (may be null)
-     */
-    protected void replaceNode(Node<T> nodeToReplace, Node<T> replacementNode) {
-        if (nodeToReplace == null) {
-            throw new NullPointerException("Cannot replace null node.");
-        }
-        if (nodeToReplace.context[0] == null) {
-            // we are replacing the root
-            if (replacementNode != null)
-                replacementNode.context[0] = null;
-            this.root = replacementNode;
-        } else {
-            // set the parent of the replacement node
-            if (replacementNode != null)
-                replacementNode.context[0] = nodeToReplace.context[0];
-            // do we have to attach a new left or right child to our parent?
-            if (nodeToReplace.isRightChild()) {
-                nodeToReplace.context[0].context[2] = replacementNode;
-            } else {
-                nodeToReplace.context[0].context[1] = replacementNode;
-            }
         }
     }
 
@@ -418,263 +478,8 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         return sb.toString();
     }
 
-    /**
-     * The job of this enforceRBTreePropertiesAfterInsert method is to resolve any
-     * red-black tree property violations that are introduced by inserting each new
-     * new node into a red-black tree. This method will be called recursively.
-     * 
-     * @param node
-     */
-    public void enforceRBTreePropertiesAfterInsert(Node<T> node) {
-        if (root == node) { // if new node is root, set to black and return
-            root.blackHeight = 1;
-            return;
-        }
-        Node<T> p = node.context[0]; // parent pointer
-        Node<T> gP = p.context[0]; // grandparent pointer
-        if (p == root || p.blackHeight != 0) { // if parent is black,
-            return;
-        }
-        Node<T> u = null; // create uncle pointer and assign if possible
-        if (p.isRightChild()) {
-            u = gP.context[1];
-        } else {
-            u = gP.context[2];
-        }
-
-        // if parent is red
-        if (node.blackHeight == 0 && p.blackHeight == 0) {
-            // if uncle is red
-            if (u != null && u.blackHeight == 0) {
-                // recolor
-                p.blackHeight = 1;
-                u.blackHeight = 1;
-                gP.blackHeight = 0;
-                enforceRBTreePropertiesAfterInsert(gP);
-            } else {
-                // if uncle is black
-                if (!p.isRightChild() && node.isRightChild()
-                        || p.isRightChild() && !node.isRightChild()) {
-                    // different sides, rotate parent and newNode
-                    rotate(node, p);
-                    enforceRBTreePropertiesAfterInsert(p);
-                } else {
-                    // same sides, rotate grandparent and parent and recolor
-                    int gPHeight = gP.blackHeight;
-                    gP.blackHeight = p.blackHeight;
-                    p.blackHeight = gPHeight;
-                    rotate(p, gP);
-                }
-            }
-        }
-        root.blackHeight = 1; // root is always black
-    }
-
     public String toString() {
         return "level order: " + this.toLevelOrderString() + "\nin order: "
                 + this.toInOrderString();
     }
-
-    // – JUNIT TESTS
-
-    /**
-     * JUnit test case for the enforceRBTreePropertiesAfterInsert method.
-     * Case: Parents sibling is black, parent and child on same side
-     * Response: Rotate grandparent and parent, then color swap
-     */
-    @Test
-    public void testCase1Enforce() {
-        // left rotation
-        {
-            RedBlackTree<Integer> test = new RedBlackTree<>();
-
-            // ensure that the tree is empty
-            assertTrue(test.isEmpty(), "Tree should be empty but is not.");
-
-            // insert nodes such that case 1 is true
-            test.insert(0);
-            test.insert(1);
-            test.insert(2);
-            test.insert(3);
-            test.insert(4); // triggers case 1
-
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 1, 2, 3, 4 ]", test.toInOrderString());
-            assertEquals("[ 1, 0, 3, 2, 4 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
-        }
-        // right rotation
-        {
-            RedBlackTree<Integer> test = new RedBlackTree<>();
-            // insert nodes such that case 1 is true
-            test.insert(9);
-            test.insert(10);
-            test.insert(11);
-            test.insert(8);
-            test.insert(7); // triggers case 1
-
-            // check that the tree is in the correct state
-            assertEquals("[ 7, 8, 9, 10, 11 ]", test.toInOrderString());
-            assertEquals("[ 10, 8, 11, 7, 9 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[1].context[2].blackHeight);
-        }
-    }
-
-    /**
-     * JUnit test case for the enforceRBTreePropertiesAfterInsert method.
-     * Case: Parents sibling is black, parent and child on different sides
-     * Response: Rotate red child and parent, then rotate and color swap
-     */
-    @Test
-    public void testCase2Enforce() {
-        // left rotation
-        {
-            RedBlackTree<Integer> test = new RedBlackTree<>();
-            // insert nodes such that case 2 is true
-            test.insert(0);
-            test.insert(2);
-            test.insert(4);
-            test.insert(6);
-            test.insert(5); // triggers case 2
-
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
-        }
-        // right rotation
-        {
-            RedBlackTree<Integer> test = new RedBlackTree<>();
-            // insert nodes such that case 2 is true
-            test.insert(9);
-            test.insert(7);
-            test.insert(5);
-            test.insert(3);
-            test.insert(4); // triggers case 2, right rotation
-
-            // check that the tree is in the correct state
-            assertEquals("[ 3, 4, 5, 7, 9 ]", test.toInOrderString());
-            assertEquals("[ 7, 4, 9, 3, 5 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[1].context[2].blackHeight);
-        }
-    }
-
-    /**
-     * JUnit test case for the enforceRBTreePropertiesAfterInsert method.
-     * Case: Parents sibling is red
-     * Response: Recolor parent, grandparent and uncle; recurse
-     * Also, miscellanous tests to check that the tree is in the correct state after
-     * several insertions
-     */
-    @Test
-    public void testCase3Enforce() {
-        RedBlackTree<Integer> test = new RedBlackTree<>();
-        // insert nodes such that case 3 is true
-        test.insert(0);
-        test.insert(2);
-        test.insert(4);
-        test.insert(6); // triggers case 3
-
-        // check that the tree is in the correct state
-        assertEquals("[ 0, 2, 4, 6 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 4, 6 ]", test.toLevelOrderString());
-
-        // check that the colors are correct
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(1, test.root.context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-        // other misc. checks
-        test.insert(5);
-
-        // check that the tree is in the correct state
-        assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
-
-        // check that the colors are correct
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(1, test.root.context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-        // left left case
-        test.insert(1);
-        assertEquals("[ 0, 1, 2, 4, 5, 6 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 1, 4, 6 ]", test.toLevelOrderString());
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(1, test.root.context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-        // left right case
-        test.insert(3);
-        assertEquals("[ 0, 1, 2, 3, 4, 5, 6 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 1, 4, 6, 3 ]", test.toLevelOrderString());
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(0, test.root.context[2].blackHeight);
-        assertEquals(1, test.root.context[2].context[1].blackHeight);
-        assertEquals(1, test.root.context[2].context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-
-        // right right case
-        test.insert(7);
-        assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 1, 4, 6, 3, 7 ]", test.toLevelOrderString());
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(0, test.root.context[2].blackHeight);
-        assertEquals(1, test.root.context[2].context[1].blackHeight);
-        assertEquals(1, test.root.context[2].context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
-
-        // right left case
-        test.insert(8);
-        assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]", test.toInOrderString());
-        assertEquals("[ 2, 0, 5, 1, 4, 7, 3, 6, 8 ]", test.toLevelOrderString());
-        assertEquals(1, test.root.blackHeight);
-        assertEquals(1, test.root.context[1].blackHeight);
-        assertEquals(0, test.root.context[2].blackHeight);
-        assertEquals(1, test.root.context[2].context[1].blackHeight);
-        assertEquals(1, test.root.context[2].context[2].blackHeight);
-        assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-        assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
-    }
-
-    /**
-     * Main method to run tests. Comment out the lines for each test to run them.
-     * 
-     * @param args
-     */
-    public static void main(String[] args) {
-    }
-
 }
