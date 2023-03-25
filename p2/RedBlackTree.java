@@ -78,8 +78,8 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
      *                                  initially (pre-rotation) related that way
      */
     private void rotate(Node<T> child, Node<T> parent) throws IllegalArgumentException {
-        if (child == null || parent == null) {
-            throw new IllegalArgumentException("Provided child a/or parent node are null.");
+        if (parent == null) {
+            root = child;
         }
 
         if (!child.context[0].equals(parent)) {
@@ -303,7 +303,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         // Node has two children
         else {
             // Find minimum node of right subtree ("inorder successor" of current node)
-            Node<T> successorNode = findMinOfRightSubtree(node.context[2]);
+            Node<T> successorNode = findMinimum(node.context[2]);
 
             // Copy inorder successor's data to current node (keep its color!)
             node.data = successorNode.data;
@@ -368,8 +368,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     private void fixRedBlackPropertiesAfterDelete(Node<T> node) {
         // Case 1: Examined node is root, end of recursion
         if (node == root) {
-            // Uncomment the following line if you want to enforce black roots (rule 2):
-            // node.color = BLACK;
+            node.blackHeight = 1;
             return;
         }
 
@@ -382,10 +381,33 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
 
             // ... and rotate
             if (node == node.context[0].context[1]) {
-                // use rotate() method to rotate left an
-                rotateLeft(node.context[0]);
+                // rotate left
+                Node<T> gP = node.context[0].context[0];
+                Node<T> rightChild = node.context[0].context[2];
+
+                node.context[0].context[2] = rightChild.context[1];
+                if (rightChild.context[1] != null) {
+                    rightChild.context[1].context[0] = node.context[0];
+                }
+
+                rightChild.context[1] = node.context[0];
+                node.context[0].context[0] = rightChild;
+
+                replaceParentsChild(gP, node.context[0], rightChild);
             } else {
-                rotateRight(node.context[0]);
+                // rotate right
+                Node<T> gP = node.context[0].context[0];
+                Node<T> leftChild = node.context[0].context[1];
+
+                node.context[0].context[1] = leftChild.context[2];
+                if (leftChild.context[2] != null) {
+                    leftChild.context[2].context[0] = node.context[0];
+                }
+
+                leftChild.context[2] = node.context[0];
+                node.context[0] = leftChild;
+
+                replaceParentsChild(gP, node.context[0], leftChild);
             }
             sibling = getSibling(node); // Get new sibling for fall-through to cases 3-6
         }
@@ -418,12 +440,14 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         // --> Recolor sibling and its child, and rotate around sibling
         if (nodeIsLeftChild && isBlack(sibling.context[2])) {
             sibling.context[1].blackHeight = 0;
-            rotateRight(sibling);
+            rotate(sibling.context[1], sibling);
+            // ! rotateRight(sibling);
             sibling = node.context[0].context[2];
         } else if (!nodeIsLeftChild && isBlack(sibling.context[1])) {
             sibling.context[2].blackHeight = 1;
             sibling.blackHeight = 0;
-            rotateLeft(sibling);
+            rotate(sibling.context[2], sibling);
+            // ! rotateLeft(sibling);
             sibling = node.context[0].context[1];
         }
 
@@ -435,10 +459,12 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         node.context[0].blackHeight = 1;
         if (nodeIsLeftChild) {
             sibling.context[2].blackHeight = 1;
-            rotateLeft(node.context[0]);
+            rotate(sibling, node.context[0]);
+            // ! rotateLeft(node.context[0]);
         } else {
             sibling.context[1].blackHeight = 1;
-            rotateRight(node.context[0]);
+            rotate(sibling, node.context[0]);
+            // ! rotateRight(node.context[0]);
         }
     }
 
@@ -464,38 +490,6 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         }
     }
 
-    // < –––––––––––––- END REMOVE ––––––––––––––––––>
-    // < –––––––––––––- BEGIN REMOVE HELPERS ––––––––––––––––––>
-    private void rotateRight(Node<T> node) {
-        Node<T> parent = node.context[0];
-        Node<T> leftChild = node.context[1];
-
-        node.context[1] = leftChild.context[2];
-        if (leftChild.context[2] != null) {
-            leftChild.context[2].context[0] = node;
-        }
-
-        leftChild.context[2] = node;
-        node.context[0] = leftChild;
-
-        replaceParentsChild(parent, node, leftChild);
-    }
-
-    private void rotateLeft(Node<T> node) {
-        Node<T> parent = node.context[0];
-        Node<T> rightChild = node.context[2];
-
-        node.context[2] = rightChild.context[1];
-        if (rightChild.context[1] != null) {
-            rightChild.context[1].context[0] = node;
-        }
-
-        rightChild.context[1] = node;
-        node.context[0] = rightChild;
-
-        replaceParentsChild(parent, node, rightChild);
-    }
-
     private void replaceParentsChild(Node<T> parent, Node<T> oldChild, Node<T> newChild) {
         if (parent == null) {
             root = newChild;
@@ -511,7 +505,15 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
             newChild.context[0] = parent;
         }
     }
-    // < –––––––––––––- END REMOVE HELPERS ––––––––––––––––––>
+
+    private Node<T> findMinimum(Node<T> node) {
+        while (node.context[1] != null) {
+            node = node.context[1];
+        }
+        return node;
+    }
+
+    // < –––––––––––––- END REMOVE ––––––––––––––––––>
 
     public Node<T> get(T data) {
         // throw exception if data is null, as null references are not allowed or return
