@@ -22,7 +22,7 @@ import java.util.Stack;
  * 
  * @author Nico S. and Course Staff
  */
-public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionInterface<T>, Iterable<T> {
+public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
 
     /**
      * This class represents a node holding a single value within a binary tree.
@@ -50,6 +50,35 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
          */
         public boolean isRightChild() {
             return context[0] != null && context[0].context[2] == this;
+        }
+
+        /**
+         * Gets the inorder successor of this node in the tree. The inorder successor is
+         * the next node in an inorder traversal of the tree. When this node has a right
+         * child, then the inorder successor is the left-most node in the right subtree
+         * of this node. When this node does not have a right child, then the inorder
+         * successor is the closest ancestor of this node whose left child is also an
+         * ancestor of this node. If this node does not have an inorder successor, then
+         * this method returns null.
+         * 
+         * @return
+         */
+        public Node<T> getInorderSuccessor() {
+            Node<T> current = this;
+            if (current.context[2] != null) {
+                current = current.context[2];
+                while (current.context[1] != null) {
+                    current = current.context[1];
+                }
+                return current;
+            } else {
+                Node<T> parent = current.context[0];
+                while (parent != null && current == parent.context[2]) {
+                    current = parent;
+                    parent = parent.context[0];
+                }
+                return parent;
+            }
         }
     }
 
@@ -321,6 +350,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
                 replaceNode(movedUpNode, null);
             }
         }
+        size--;
         return true;
     }
 
@@ -440,14 +470,12 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         // --> Recolor sibling and its child, and rotate around sibling
         if (nodeIsLeftChild && isBlack(sibling.context[2])) {
             sibling.context[1].blackHeight = 0;
-            rotate(sibling.context[1], sibling);
-            // ! rotateRight(sibling);
+            rotate(sibling.context[1], sibling); // rotate right
             sibling = node.context[0].context[2];
         } else if (!nodeIsLeftChild && isBlack(sibling.context[1])) {
             sibling.context[2].blackHeight = 1;
             sibling.blackHeight = 0;
-            rotate(sibling.context[2], sibling);
-            // ! rotateLeft(sibling);
+            rotate(sibling.context[2], sibling); // rotate left
             sibling = node.context[0].context[1];
         }
 
@@ -459,12 +487,10 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         node.context[0].blackHeight = 1;
         if (nodeIsLeftChild) {
             sibling.context[2].blackHeight = 1;
-            rotate(sibling, node.context[0]);
-            // ! rotateLeft(node.context[0]);
+            rotate(sibling, node.context[0]); // rotate left
         } else {
             sibling.context[1].blackHeight = 1;
-            rotate(sibling, node.context[0]);
-            // ! rotateRight(node.context[0]);
+            rotate(sibling, node.context[0]); // rotate right
         }
     }
 
@@ -483,6 +509,7 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         return node == null || node.blackHeight == 1;
     }
 
+    @SuppressWarnings("unchecked") // Safe cast
     private static class NilNode extends Node {
         private NilNode() {
             super(0);
@@ -514,25 +541,6 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
     }
 
     // < –––––––––––––- END REMOVE ––––––––––––––––––>
-
-    public Node<T> get(T data) {
-        // throw exception if data is null, as null references are not allowed or return
-        // node
-        if (data == null) {
-            throw new NullPointerException("This RedBlackTree cannot store null references.");
-            // throw exception if node with data does not exist
-        } else {
-            Node<T> nodeWithData = this.findNodeWithData(data);
-            // throw exception if node with data does not exist
-            if (nodeWithData == null) {
-                throw new NoSuchElementException(
-                        "The following value is not in the tree and cannot be deleted: "
-                                + data.toString());
-            }
-            // return node if all checks pass
-            return nodeWithData;
-        }
-    }
 
     /**
      * Get the size of the tree (its number of nodes).
@@ -688,13 +696,42 @@ public class RedBlackTree<T extends Comparable<T>> implements SortedCollectionIn
         return sb.toString();
     }
 
-    @Override
-    public Iterator<T> iterator() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Iterator<IPokemon> iterator() {
+        return new PokemonIteratorAE((RedBlackTree.Node<PokemonAE>) findMinimum(root));
     }
 
     public String toString() {
         return "level order: " + this.toLevelOrderString() + "\nin order: "
                 + this.toInOrderString();
+    }
+
+    @Override
+    public T get(String searchKey) throws NoSuchElementException {
+        if (searchKey == null) {
+            throw new NullPointerException("Cannot search for null key!");
+        }
+
+        Node<T> current = this.root;
+        while (current != null) {
+            int compare = searchKey.compareTo((String) current.data);
+            if (compare == 0) {
+                // we found our value
+                return current.data;
+            } else if (compare < 0) {
+                // keep looking in the left subtree
+                current = current.context[1];
+            } else {
+                // keep looking in the right subtree
+                current = current.context[2];
+            }
+        }
+
+        throw new NoSuchElementException("No such key in the tree!");
+    }
+
+    @Override
+    public void clear() {
+        this.root = null;
+        this.size = 0;
     }
 }
