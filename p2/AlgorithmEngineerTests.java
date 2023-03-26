@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Iterator;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 
 /**
  * JUnit tests for the RedBlackTree class.
@@ -17,232 +16,320 @@ import org.junit.jupiter.api.BeforeEach;
  */
 public class AlgorithmEngineerTests {
 
-    @BeforeEach
-    public void setUp() {
-        RedBlackTree<Integer> tree = new RedBlackTree<>();
+    /**
+     * Method to validate the RBT.
+     * 
+     * @param tree the RBT to validate
+     * @return true if the RBT is valid, false otherwise
+     */
+    public boolean validateRBT(RbtAE tree) {
+        if (tree.root == null) {
+            return true;
+        }
 
+        if (tree.root.blackHeight != 1) {
+            return false;
+        }
+
+        int left = numBlack(tree.root.context[1]);
+        int right = numBlack(tree.root.context[2]);
+
+        if (left != right || left == -1) {
+            return false;
+        }
+
+        return true;
     }
 
-    @Test
-    public void testRBTInsert() {
-        // - Case 1: Case: Parents sibling is black, parent and child on same side,
-        // . . . . . Response: Rotate grandparent and parent, then color swap
-        { // left rotation
-            RedBlackTree<Integer> test = new RedBlackTree<>(); // set up tree
-
-            // ensure that the tree is empty
-            assertTrue(test.isEmpty(), "Tree should be empty but is not.");
-
-            // insert nodes such that case 1 is true
-            test.insert(0);
-            test.insert(1);
-            test.insert(2);
-            test.insert(3);
-            test.insert(4); // triggers case 1
-
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 1, 2, 3, 4 ]", test.toInOrderString());
-            assertEquals("[ 1, 0, 3, 2, 4 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
+    /**
+     * Returns the number of black nodes in the path from the root to the given
+     * node. Helper method for validateRBT.
+     * 
+     * @param node the node to check
+     * @return the number of black nodes in the path from the root to the given
+     */
+    private int numBlack(RbtAE.Node<IPokemon> node) {
+        if (node == null) {
+            return 0;
         }
-        { // right rotation
-            RedBlackTree<Integer> test = new RedBlackTree<>(); // set up tree
-            // insert nodes such that case 1 is true
-            test.insert(9);
-            test.insert(10);
-            test.insert(11);
-            test.insert(8);
-            test.insert(7); // triggers case 1
 
-            // check that the tree is in the correct state
-            assertEquals("[ 7, 8, 9, 10, 11 ]", test.toInOrderString());
-            assertEquals("[ 10, 8, 11, 7, 9 ]", test.toLevelOrderString());
+        int left = numBlack(node.context[1]);
+        int right = numBlack(node.context[2]);
 
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[1].context[2].blackHeight);
+        if (left != right || left == -1) {
+            return -1;
         }
-        // - Case 2: Case: Parents sibling is black, parent and child on opposite sides,
-        // . . . . . Response: Rotate red child and parent, then rotate and color swap
-        { // left rotation
-            RedBlackTree<Integer> test = new RedBlackTree<>(); // set up tree
-            // insert nodes such that case 2 is true
-            test.insert(0);
-            test.insert(2);
-            test.insert(4);
-            test.insert(6);
-            test.insert(5); // triggers case 2
 
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
+        if (node.blackHeight == 1) {
+            return left + 1;
+        } else {
+            return left;
         }
-        { // right rotation
-            RedBlackTree<Integer> test = new RedBlackTree<>(); // set up tree
-            // insert nodes such that case 2 is true
-            test.insert(9);
-            test.insert(7);
-            test.insert(5);
-            test.insert(3);
-            test.insert(4); // triggers case 2, right rotation
-
-            // check that the tree is in the correct state
-            assertEquals("[ 3, 4, 5, 7, 9 ]", test.toInOrderString());
-            assertEquals("[ 7, 4, 9, 3, 5 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[1].context[2].blackHeight);
-        }
-        // - Case 3: Case: Parents sibling is red
-        // . . . . . Response: Recolor parent, GP, and uncle; recurse. Also, misc tests
-        // at the end of this test to ensure that the tree is in the correct state for
-        // various insertions
-        {
-            RedBlackTree<Integer> test = new RedBlackTree<>(); // set up tree
-            // insert nodes such that case 3 is true
-            test.insert(0);
-            test.insert(2);
-            test.insert(4);
-            test.insert(6); // triggers case 3
-
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 2, 4, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 4, 6 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-            // other misc. checks
-            test.insert(5);
-
-            // check that the tree is in the correct state
-            assertEquals("[ 0, 2, 4, 5, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 4, 6 ]", test.toLevelOrderString());
-
-            // check that the colors are correct
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-            // left left case
-            test.insert(1);
-            assertEquals("[ 0, 1, 2, 4, 5, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 1, 4, 6 ]", test.toLevelOrderString());
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(1, test.root.context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].blackHeight);
-
-            // left right case
-            test.insert(3);
-            assertEquals("[ 0, 1, 2, 3, 4, 5, 6 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 1, 4, 6, 3 ]", test.toLevelOrderString());
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(0, test.root.context[2].blackHeight);
-            assertEquals(1, test.root.context[2].context[1].blackHeight);
-            assertEquals(1, test.root.context[2].context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-
-            // right right case
-            test.insert(7);
-            assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 1, 4, 6, 3, 7 ]", test.toLevelOrderString());
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(0, test.root.context[2].blackHeight);
-            assertEquals(1, test.root.context[2].context[1].blackHeight);
-            assertEquals(1, test.root.context[2].context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
-
-            // right left case
-            test.insert(8);
-            assertEquals("[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]", test.toInOrderString());
-            assertEquals("[ 2, 0, 5, 1, 4, 7, 3, 6, 8 ]", test.toLevelOrderString());
-            assertEquals(1, test.root.blackHeight);
-            assertEquals(1, test.root.context[1].blackHeight);
-            assertEquals(0, test.root.context[2].blackHeight);
-            assertEquals(1, test.root.context[2].context[1].blackHeight);
-            assertEquals(1, test.root.context[2].context[2].blackHeight);
-            assertEquals(0, test.root.context[2].context[1].context[1].blackHeight);
-            assertEquals(0, test.root.context[2].context[2].context[2].blackHeight);
-        }
-        System.out.println("Insert ✔️");
     }
 
+    /**
+     * Tests remove method for:
+     * case 1: deleted node is root.
+     * case 2: sibling is red
+     * case 3: sibling is black and both children are black, parent is red
+     * case 4: sibling is black and both children are black, parent is black
+     * 
+     * @see RbtAE#remove(IPokemon) and
+     *      RbtAE#fixRedBlackTreePropertiesAfterDelete(IPokemon)
+     */
     @Test
-    public void testRBTRemove() {
-        RedBlackTree<Integer> tree = new RedBlackTree<>(); // set up tree
-
+    public void testRBTRemove1() {
         // case 1: deleted node is root
+        {
+            RbtAE tree = new RbtAE(); // set up tree
+            PokemonAE pkm = new PokemonAE("Charmander");
+            tree.insert(pkm); // insert Pokemon
+
+            // check that the tree is not empty
+            assertEquals(1, tree.size);
+            assertTrue(!tree.isEmpty());
+
+            tree.remove(pkm); // remove Pokemon
+
+            // check that the tree is empty
+            assertEquals(0, tree.size);
+            assertTrue(tree.isEmpty());
+            assertTrue(validateRBT(tree));
+            assertEquals("[  ]", tree.toLevelOrderString());
+        }
 
         // case 2: sibling is red
+        {
+            RbtAE tree = new RbtAE(); // set up tree
+
+            tree.insert(new PokemonAE("b"));
+            PokemonAE pkm = new PokemonAE("a");
+            tree.insert(pkm);
+            tree.insert(new PokemonAE("d"));
+            tree.insert(new PokemonAE("c"));
+            tree.insert(new PokemonAE("e"));
+
+            tree.root.blackHeight = 1;
+            tree.root.context[1].blackHeight = 1;
+            tree.root.context[2].blackHeight = 0;
+            tree.root.context[2].context[1].blackHeight = 1;
+            tree.root.context[2].context[2].blackHeight = 1;
+
+            // check tree size
+            assertEquals(5, tree.size);
+
+            tree.remove(pkm); // remove Pokemon
+
+            // check that the tree size is correct
+            assertEquals(4, tree.size);
+
+            // validate the tree
+            assertTrue(validateRBT(tree));
+            assertEquals(
+                    "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='e'}, PokemonAE{name='c'} ]",
+                    tree.toLevelOrderString());
+
+            // checking each blackheight individually once to make sure validate() method
+            // works
+            assertEquals(1, tree.root.blackHeight);
+            assertEquals(1, tree.root.context[1].blackHeight);
+            assertEquals(1, tree.root.context[2].blackHeight);
+            assertEquals(0, tree.root.context[1].context[2].blackHeight);
+        }
 
         // case 3: sibling is black and both children are black, parent is red
+        {
+            RbtAE tree = new RbtAE(); // set up tree
+
+            tree.insert(new PokemonAE("d"));
+            tree.insert(new PokemonAE("b"));
+            tree.insert(new PokemonAE("f"));
+            tree.insert(new PokemonAE("a"));
+            tree.insert(new PokemonAE("c"));
+            tree.insert(new PokemonAE("e"));
+            PokemonAE pkm = new PokemonAE("g");
+            tree.insert(pkm);
+
+            // check tree size
+            assertEquals(7, tree.size);
+
+            tree.remove(pkm); // remove Pokemon
+
+            // check that the tree size is correct
+            assertEquals(6, tree.size);
+
+            // validate the tree
+            assertTrue(validateRBT(tree));
+            assertEquals(
+                    "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='f'}, PokemonAE{name='a'}, PokemonAE{name='c'}, PokemonAE{name='e'} ]",
+                    tree.toLevelOrderString());
+        }
 
         // case 4: sibling is black and both children are black, parent is black
+        {
+            RbtAE tree = new RbtAE(); // set up tree
 
+            tree.insert(new PokemonAE("d"));
+            tree.insert(new PokemonAE("b"));
+            tree.insert(new PokemonAE("f"));
+            tree.insert(new PokemonAE("a"));
+            tree.insert(new PokemonAE("c"));
+            tree.insert(new PokemonAE("g"));
+            PokemonAE pkm = new PokemonAE("e");
+            tree.insert(pkm);
+
+            // check tree size
+            assertEquals(7, tree.size);
+
+            tree.remove(pkm); // remove Pokemon
+
+            // check that the tree size is correct
+            assertEquals(6, tree.size);
+
+            // validate the tree
+            assertTrue(validateRBT(tree));
+            assertEquals(
+                    "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='f'}, PokemonAE{name='a'}, PokemonAE{name='c'}, PokemonAE{name='g'} ]",
+                    tree.toLevelOrderString());
+        }
+
+    }
+
+    /**
+     * Tests remove method for:
+     * case 5: sibling is black, left or right red child, "outer" nephew is black
+     * case 6: sibling is black, left or right red child, "inner" nephew is red
+     * 
+     * @see RbtAE#remove(IPokemon) and
+     *      RbtAE#fixRedBlackTreePropertiesAfterDelete(IPokemon)
+     */
+    @Test
+    public void testRBTRemove2() {
         // case 5: sibling is black, left or right red child, "outer" nephew is black
+        {
+            RbtAE tree = new RbtAE(); // set up tree
+
+            tree.insert(new PokemonAE("b"));
+            tree.insert(new PokemonAE("a"));
+            tree.insert(new PokemonAE("d"));
+            PokemonAE pkm = new PokemonAE("c");
+            tree.insert(pkm);
+            tree.insert(new PokemonAE("f"));
+            tree.insert(new PokemonAE("e"));
+
+            tree.remove(pkm); // remove Pokemon
+
+            // validate the tree
+            assertTrue(validateRBT(tree));
+            assertEquals(
+                    "[ PokemonAE{name='b'}, PokemonAE{name='a'}, PokemonAE{name='e'}, PokemonAE{name='d'}, PokemonAE{name='f'} ]",
+                    tree.toLevelOrderString());
+        }
 
         // case 6: sibling is black, left or right red child, "inner" nephew is red
+        {
+            RbtAE tree = new RbtAE(); // set up tree
+
+            tree.insert(new PokemonAE("b"));
+            tree.insert(new PokemonAE("a"));
+            tree.insert(new PokemonAE("d"));
+            PokemonAE pkm = new PokemonAE("c");
+            tree.insert(pkm);
+            tree.insert(new PokemonAE("f"));
+            tree.insert(new PokemonAE("e"));
+            tree.insert(new PokemonAE("g"));
+
+            tree.remove(pkm); // remove Pokemon
+
+            // validate the tree
+            assertTrue(validateRBT(tree));
+            assertEquals(
+                    "[ PokemonAE{name='b'}, PokemonAE{name='a'}, PokemonAE{name='f'}, PokemonAE{name='d'}, PokemonAE{name='g'}, PokemonAE{name='e'} ]",
+                    tree.toLevelOrderString());
+        }
     }
 
+    /**
+     * Tests get method.
+     * 
+     * @see RbtAE#get(String)
+     */
     @Test
     public void testRBTGet() {
-        RedBlackTree<Integer> tree = new RedBlackTree<>(); // set up tree
 
+        /**
+         * Let's test the get method by setting up a red black tree and trying to
+         * retrieve a key that exists and a key that does not exist, and a null key.
+         */
+        RbtAE tree = new RbtAE(); // set up tree
+
+        tree.insert(new PokemonAE("Charmander")); // insert Pokemon
+        tree.insert(new PokemonAE("Charmeleon"));
+        tree.insert(new PokemonAE("Charizard"));
+
+        assertEquals("Charizard", tree.get("Charizard").getName()); // get Pokemon
+        assertEquals("Charmander", tree.get("Charmander").getName());
+        assertEquals("Charmeleon", tree.get("Charmeleon").getName());
+
+        // now let's try to get a Pokemon that does not exist
+
+        try {
+            tree.get("Pikachu");
+        } catch (Exception e) {
+            assertEquals("java.util.NoSuchElementException", e.getClass().getName());
+        }
+
+        // now let's try to get a null Pokemon
+
+        try {
+            tree.get(null);
+        } catch (Exception e) {
+            assertEquals("java.lang.NullPointerException", e.getClass().getName());
+        }
     }
 
+    /**
+     * Tests iterator functionality. Tests that the iterator returns the correct
+     * order of the tree's Pokemon elements.
+     * 
+     * @see RbtAE#iterator(), PokemonIteratorAE#hasNext(), and
+     *      PokemonIteratorAE#next()
+     */
     @Test
     public void testRBTIterator() {
-        RedBlackTree<IPokemon> tree = new RedBlackTree<>(); // set up tree
-        tree.insert(new PokemonAE("Pikachu", 15, "Electric"));
-        tree.insert(new PokemonAE("Raichu", 16, "Electric"));
-        tree.insert(new PokemonAE("Charmander", 4, "Fire"));
-        tree.insert(new PokemonAE("Charmeleon", 5, "Fire"));
-        tree.insert(new PokemonAE("Charizard", 6, "Fire"));
 
-        assertEquals(
-                "[ PokemonAE@7364985f, PokemonAE@5d20e46, PokemonAE@709ba3fb, PokemonAE@3d36e4cd, PokemonAE@6a472554 ]",
-                tree.toInOrderString());
+        /**
+         * Let's test the iterator by setting up a red black tree and expecting the
+         * iterator to move throw the elements in lexico-graphical order.
+         */
 
-        Iterator<IPokemon> iter = tree.iterator();
+        RbtAE tree = new RbtAE(); // set up tree
 
+        tree.insert(new PokemonAE("Charmander")); // insert Pokemon
+        tree.insert(new PokemonAE("Charmeleon"));
+        tree.insert(new PokemonAE("Charizard"));
+        tree.insert(new PokemonAE("Pikachu"));
+        tree.insert(new PokemonAE("Raichu"));
+
+        Iterator<IPokemon> iter = tree.iterator(); // get iterator
+
+        assertEquals("Charizard", iter.next().getName()); // test iterator
         assertEquals("Charmander", iter.next().getName());
         assertEquals("Charmeleon", iter.next().getName());
-        assertEquals("Charizard", iter.next().getName());
+
+        assertTrue(iter.hasNext()); // test iterator
+
         assertEquals("Pikachu", iter.next().getName());
         assertEquals("Raichu", iter.next().getName());
 
+        assertTrue(!iter.hasNext()); // test iterator
     }
 
+    /**
+     * Tests the Driver class.
+     * 
+     * @see Pokeylog.java
+     */
     @Test
     public void testDriver() {
 
