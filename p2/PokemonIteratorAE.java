@@ -3,9 +3,9 @@ import java.util.NoSuchElementException;
 
 public class PokemonIteratorAE implements Iterator<IPokemon> {
 
-    private RedBlackTree.Node<PokemonAE> next;
+    private RbtAE.Node<IPokemon> next;
 
-    public PokemonIteratorAE(RedBlackTree.Node<PokemonAE> root) {
+    public PokemonIteratorAE(RbtAE.Node<IPokemon> root) {
         next = root;
     }
 
@@ -15,12 +15,12 @@ public class PokemonIteratorAE implements Iterator<IPokemon> {
     }
 
     @Override
-    public PokemonAE next() {
+    public IPokemon next() {
         if (!hasNext()) {
             throw new NoSuchElementException("No more Pokemon!");
         }
 
-        PokemonAE nextPokemon = next.data;
+        IPokemon nextPokemon = next.data;
         next = next.getInorderSuccessor();
         return nextPokemon;
 

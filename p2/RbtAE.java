@@ -22,13 +22,13 @@ import java.util.Stack;
  * 
  * @author Nico S. and Course Staff
  */
-public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
+public class RbtAE implements IRbt<IPokemon> {
 
     /**
      * This class represents a node holding a single value within a binary tree.
      */
-    protected static class Node<T> {
-        public T data;
+    protected static class Node<IPokemon> {
+        public IPokemon data;
         public int blackHeight;
 
         // The context array stores the context of the node in the tree:
@@ -36,9 +36,9 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         // - context[1] is the left child reference of the node,
         // - context[2] is the right child reference of the node.
         @SuppressWarnings("unchecked")
-        public Node<T>[] context = (Node<T>[]) new Node[3];
+        public Node<IPokemon>[] context = (Node<IPokemon>[]) new Node[3];
 
-        public Node(T data) {
+        public Node(IPokemon data) {
             this.data = data;
             this.blackHeight = 0;
         }
@@ -61,10 +61,10 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
          * ancestor of this node. If this node does not have an inorder successor, then
          * this method returns null.
          * 
-         * @return
+         * @return the inorder successor of this node, or null if none exists
          */
-        public Node<T> getInorderSuccessor() {
-            Node<T> current = this;
+        public Node<IPokemon> getInorderSuccessor() {
+            Node<IPokemon> current = this;
             if (current.context[2] != null) {
                 current = current.context[2];
                 while (current.context[1] != null) {
@@ -72,7 +72,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
                 }
                 return current;
             } else {
-                Node<T> parent = current.context[0];
+                Node<IPokemon> parent = current.context[0];
                 while (parent != null && current == parent.context[2]) {
                     current = parent;
                     parent = parent.context[0];
@@ -82,7 +82,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    protected Node<T> root; // reference to root node of tree, null when empty
+    protected Node<IPokemon> root; // reference to root node of tree, null when empty
     protected int size = 0; // the number of values in the tree
 
     /**
@@ -106,7 +106,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      *                                  references are not
      *                                  initially (pre-rotation) related that way
      */
-    private void rotate(Node<T> child, Node<T> parent) throws IllegalArgumentException {
+    private void rotate(Node<IPokemon> child, Node<IPokemon> parent) throws IllegalArgumentException {
         if (parent == null) {
             root = child;
         }
@@ -153,7 +153,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * @param nodeToReplace   the node to replace
      * @param replacementNode the replacement for the node (may be null)
      */
-    protected void replaceNode(Node<T> nodeToReplace, Node<T> replacementNode) {
+    protected void replaceNode(Node<IPokemon> nodeToReplace, Node<IPokemon> replacementNode) {
         if (nodeToReplace == null) {
             throw new NullPointerException("Cannot replace null node.");
         }
@@ -186,12 +186,12 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * @throws NullPointerException     when the provided data argument is null
      * @throws IllegalArgumentException when data is already contained in the tree
      */
-    public boolean insert(T data) throws NullPointerException, IllegalArgumentException {
+    public boolean insert(IPokemon data) throws NullPointerException, IllegalArgumentException {
         // null references cannot be stored within this tree
         if (data == null)
             throw new NullPointerException("This RedBlackTree cannot store null references.");
 
-        Node<T> newNode = new Node<>(data);
+        Node<IPokemon> newNode = new Node<>(data);
         if (this.root == null) {
             // add first node to an empty tree
             root = newNode;
@@ -200,7 +200,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
             return true;
         } else {
             // insert into subtree
-            Node<T> current = this.root;
+            Node<IPokemon> current = this.root;
             while (true) {
                 int compare = newNode.data.compareTo(current.data);
                 if (compare == 0) {
@@ -244,17 +244,17 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * 
      * @param node
      */
-    public void enforceRBTreePropertiesAfterInsert(Node<T> node) {
+    private void enforceRBTreePropertiesAfterInsert(Node<IPokemon> node) {
         if (root == node) { // if new node is root, set to black and return
             root.blackHeight = 1;
             return;
         }
-        Node<T> p = node.context[0]; // parent pointer
-        Node<T> gP = p.context[0]; // grandparent pointer
+        Node<IPokemon> p = node.context[0]; // parent pointer
+        Node<IPokemon> gP = p.context[0]; // grandparent pointer
         if (p == root || p.blackHeight != 0) { // if parent is black,
             return;
         }
-        Node<T> u = null; // create uncle pointer and assign if possible
+        Node<IPokemon> u = null; // create uncle pointer and assign if possible
         if (p.isRightChild()) {
             u = gP.context[1];
         } else {
@@ -299,14 +299,16 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * @return true if the value was remove, false if it didn't exist
      * @throws NullPointerException     when the provided data argument is null
      * @throws IllegalArgumentException when data is not stored in the tree
+     * 
+     * @author Nico Salm, with inspiration from 400 course staff
      */
-    public boolean remove(T data) throws NullPointerException, IllegalArgumentException {
-        Node<T> node = root;
+    public boolean remove(IPokemon data) throws NullPointerException, IllegalArgumentException {
+        Node<IPokemon> node = root;
 
         // Find the node to be deleted
         while (node != null && node.data != data) {
             // Traverse the tree to the left or right depending on the key
-            if (data.compareTo((T) node.data) < 0) {
+            if (data.compareTo((IPokemon) node.data) < 0) {
                 node = node.context[1];
             } else {
                 node = node.context[2];
@@ -320,7 +322,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
 
         // Node found, delete it and fix the tree; keep track of the node that was moved
         // up to replace the deleted node and the color of the deleted node
-        Node<T> movedUpNode;
+        Node<IPokemon> movedUpNode;
         int deletedNodeColor;
 
         // Node has zero or one child
@@ -332,7 +334,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         // Node has two children
         else {
             // Find minimum node of right subtree ("inorder successor" of current node)
-            Node<T> successorNode = findMinimum(node.context[2]);
+            Node<IPokemon> successorNode = findMinimum(node.context[2]);
 
             // Copy inorder successor's data to current node (keep its color!)
             node.data = successorNode.data;
@@ -350,11 +352,19 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
                 replaceNode(movedUpNode, null);
             }
         }
+
         size--;
         return true;
     }
 
-    private Node<T> deleteNodeWithZeroOrOneChild(Node<T> node) {
+    /**
+     * Helper method that will delete a node with zero or one child. The method will
+     * return the node that was moved up to replace the deleted node.
+     * 
+     * @param node the node to be deleted
+     * @return the node that was moved up to replace the deleted node
+     */
+    private Node<IPokemon> deleteNodeWithZeroOrOneChild(Node<IPokemon> node) {
         // Node has ONLY a left child: replace by its left child
         if (node.context[1] != null) {
             replaceNode(node, node.context[1]);
@@ -370,7 +380,7 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         // Node has no children: replace by NIL node
         else {
             @SuppressWarnings("unchecked")
-            Node<T> newChild = node.blackHeight == 1 ? new NilNode() : null;
+            Node<IPokemon> newChild = node.blackHeight == 1 ? new NilNode() : null;
             replaceNode(node, newChild);
             return newChild;
         }
@@ -395,14 +405,14 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * 
      * @param node the node to replace
      */
-    private void fixRedBlackPropertiesAfterDelete(Node<T> node) {
+    private void fixRedBlackPropertiesAfterDelete(Node<IPokemon> node) {
         // Case 1: Examined node is root, end of recursion
         if (node == root) {
-            node.blackHeight = 1;
+            // node.blackHeight = 1;
             return;
         }
 
-        Node<T> sibling = getSibling(node);
+        Node<IPokemon> sibling = getSibling(node);
 
         // Case 2: Red sibling
         if (sibling.blackHeight == 0) {
@@ -412,8 +422,8 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
             // ... and rotate
             if (node == node.context[0].context[1]) {
                 // rotate left
-                Node<T> gP = node.context[0].context[0];
-                Node<T> rightChild = node.context[0].context[2];
+                Node<IPokemon> gP = node.context[0].context[0];
+                Node<IPokemon> rightChild = node.context[0].context[2];
 
                 node.context[0].context[2] = rightChild.context[1];
                 if (rightChild.context[1] != null) {
@@ -426,8 +436,8 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
                 replaceParentsChild(gP, node.context[0], rightChild);
             } else {
                 // rotate right
-                Node<T> gP = node.context[0].context[0];
-                Node<T> leftChild = node.context[0].context[1];
+                Node<IPokemon> gP = node.context[0].context[0];
+                Node<IPokemon> leftChild = node.context[0].context[1];
 
                 node.context[0].context[1] = leftChild.context[2];
                 if (leftChild.context[2] != null) {
@@ -463,7 +473,14 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    private void handleBlackSiblingWithAtLeastOneRedChild(Node<T> node, Node<T> sibling) {
+    /**
+     * Helper method for the fixRedBlackPropertiesAfterDelete method. This method
+     * handles case 5 and 6.
+     * 
+     * @param node    the node being removed
+     * @param sibling the sibling of the node being removed
+     */
+    private void handleBlackSiblingWithAtLeastOneRedChild(Node<IPokemon> node, Node<IPokemon> sibling) {
         boolean nodeIsLeftChild = node == node.context[0].context[1];
 
         // Case 5: Black sibling with at least one red child + "outer nephew" is black
@@ -494,8 +511,14 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    private Node<T> getSibling(Node<T> node) {
-        Node<T> parent = node.context[0];
+    /**
+     * Returns the sibling of the given node.
+     * 
+     * @param node the node to get the sibling of
+     * @return the sibling of the given node
+     */
+    private Node<IPokemon> getSibling(Node<IPokemon> node) {
+        Node<IPokemon> parent = node.context[0];
         if (node == parent.context[1]) {
             return parent.context[2];
         } else if (node == parent.context[2]) {
@@ -505,10 +528,21 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    private boolean isBlack(Node<T> node) {
+    /**
+     * Returns true if the node is black, or null.
+     * 
+     * @param node the node to check
+     * @return true if the node is black, or null
+     */
+    private boolean isBlack(Node<IPokemon> node) {
         return node == null || node.blackHeight == 1;
     }
 
+    /**
+     * A class representing a NIL node. This is a singleton class, so that there is
+     * only one NIL.
+     * 
+     */
     @SuppressWarnings("unchecked") // Safe cast
     private static class NilNode extends Node {
         private NilNode() {
@@ -517,7 +551,15 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    private void replaceParentsChild(Node<T> parent, Node<T> oldChild, Node<T> newChild) {
+    /**
+     * Replaces a child of a parent with a new child. Helper used in
+     * fixRedBlackPropertiesAfterDelete.
+     * 
+     * @param parent   the parent node
+     * @param oldChild the old child node
+     * @param newChild the new child node
+     */
+    private void replaceParentsChild(Node<IPokemon> parent, Node<IPokemon> oldChild, Node<IPokemon> newChild) {
         if (parent == null) {
             root = newChild;
         } else if (parent.context[1] == oldChild) {
@@ -533,11 +575,17 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         }
     }
 
-    private Node<T> findMinimum(Node<T> node) {
-        while (node.context[1] != null) {
-            node = node.context[1];
+    /**
+     * Finds the minimum node in the tree.
+     * 
+     * @param root the node to start the search from
+     * @return the minimum node in the tree
+     */
+    private Node<IPokemon> findMinimum(Node<IPokemon> root) {
+        while (root.context[1] != null) {
+            root = root.context[1];
         }
-        return node;
+        return root;
     }
 
     // < –––––––––––––- END REMOVE ––––––––––––––––––>
@@ -566,12 +614,12 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * @param data the data value to test for
      * @return true if *data* is in the tree, false if it is not in the tree
      */
-    public boolean contains(T data) {
+    public boolean contains(IPokemon data) {
         // null references will not be stored within this tree
         if (data == null) {
             throw new NullPointerException("This RedBlackTree cannot store null references.");
         } else {
-            Node<T> nodeWithData = this.findNodeWithData(data);
+            Node<IPokemon> nodeWithData = this.findNodeWithData(data);
             // return false if the node is null, true otherwise
             return (nodeWithData != null);
         }
@@ -584,12 +632,12 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * @param node the node to find the successor for
      * @return the node that is the inorder successor of node
      */
-    protected Node<T> findMinOfRightSubtree(Node<T> node) {
+    protected Node<IPokemon> findMinOfRightSubtree(Node<IPokemon> node) {
         if (node.context[1] == null && node.context[2] == null) {
             throw new IllegalArgumentException("Node must have two children");
         }
         // take a steop to the right
-        Node<T> current = node.context[2];
+        Node<IPokemon> current = node.context[2];
         while (true) {
             // then go left as often as possible to find the successor
             if (current.context[1] == null) {
@@ -608,8 +656,8 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
      * 
      * @return the node that contains the data, or null of no such node exists
      */
-    protected Node<T> findNodeWithData(T data) {
-        Node<T> current = this.root;
+    protected Node<IPokemon> findNodeWithData(IPokemon data) {
+        Node<IPokemon> current = this.root;
         while (current != null) {
             int compare = data.compareTo(current.data);
             if (compare == 0) {
@@ -645,11 +693,11 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         StringBuffer sb = new StringBuffer();
         sb.append("[ ");
         if (this.root != null) {
-            Stack<Node<T>> nodeStack = new Stack<>();
-            Node<T> current = this.root;
+            Stack<Node<IPokemon>> nodeStack = new Stack<>();
+            Node<IPokemon> current = this.root;
             while (!nodeStack.isEmpty() || current != null) {
                 if (current == null) {
-                    Node<T> popped = nodeStack.pop();
+                    Node<IPokemon> popped = nodeStack.pop();
                     sb.append(popped.data.toString());
                     if (!nodeStack.isEmpty() || popped.context[2] != null)
                         sb.append(", ");
@@ -666,12 +714,10 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
 
     /**
      * This method performs a level order traversal of the tree. The string
-     * representations of each
-     * data value within this tree are assembled into a comma separated string
-     * within brackets
-     * (similar to many implementations of java.util.Collection). This method will
-     * be helpful as a
-     * helper for the debugging and testing of your rotation implementation.
+     * representations of each data value within this tree are assembled into a
+     * comma separated string within brackets (similar to many implementations of
+     * java.util.Collection). This method will be helpful as a elper for the
+     * debugging and testing of your rotation implementation.
      * 
      * @return string containing the values of this tree in level order
      */
@@ -679,10 +725,10 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         StringBuffer sb = new StringBuffer();
         sb.append("[ ");
         if (this.root != null) {
-            LinkedList<Node<T>> q = new LinkedList<>();
+            LinkedList<Node<IPokemon>> q = new LinkedList<>();
             q.add(this.root);
             while (!q.isEmpty()) {
-                Node<T> next = q.removeFirst();
+                Node<IPokemon> next = q.removeFirst();
                 if (next.context[1] != null)
                     q.add(next.context[1]);
                 if (next.context[2] != null)
@@ -696,24 +742,45 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         return sb.toString();
     }
 
+    /**
+     * This method returns an iterator over the values in this tree. The values are
+     * iterated over in a level order sequence.
+     * 
+     * @return an iterator of type PokemonIteratorAE over the values in this tree
+     */
+    @Override
     public Iterator<IPokemon> iterator() {
-        return new PokemonIteratorAE((RedBlackTree.Node<PokemonAE>) findMinimum(root));
+        return new PokemonIteratorAE((RbtAE.Node<IPokemon>) findMinimum(root));
     }
 
+    /**
+     * This method returns a string representation of the tree.
+     * 
+     * @return string containing the values of this tree in level order and in order
+     */
+    @Override
     public String toString() {
         return "level order: " + this.toLevelOrderString() + "\nin order: "
                 + this.toInOrderString();
     }
 
+    /**
+     * This method retrieves the data value associated with the specified key. If no
+     * such key exists, it throws a NoSuchElementException.
+     * 
+     * @param searchKey the key to search for
+     * @return the value associated with the search key
+     * @throws NoSuchElementException if the key is not found
+     */
     @Override
-    public T get(String searchKey) throws NoSuchElementException {
+    public IPokemon get(String searchKey) throws NoSuchElementException {
         if (searchKey == null) {
             throw new NullPointerException("Cannot search for null key!");
         }
 
-        Node<T> current = this.root;
+        Node<IPokemon> current = this.root;
         while (current != null) {
-            int compare = searchKey.compareTo((String) current.data);
+            int compare = searchKey.compareTo(current.data.getName());
             if (compare == 0) {
                 // we found our value
                 return current.data;
@@ -729,6 +796,9 @@ public class RedBlackTree<T extends Comparable<T>> implements IRbt<T> {
         throw new NoSuchElementException("No such key in the tree!");
     }
 
+    /**
+     * Clears the tree.
+     */
     @Override
     public void clear() {
         this.root = null;
