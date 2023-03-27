@@ -1,44 +1,40 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Iterator;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * JUnit tests for the RedBlackTree class.
  * In this class we test:
- * 1. The insert method
- * 2. The remove method
- * 3. The get method
- * 4. The iterator functionality
- * 5. The Driver class
+ * 1. The remove method (three parts)
+ * --> we also define a helper method to validate the RBT to condense the code
+ * 2. The get method
+ * 3. The iterator functionality
  */
 public class AlgorithmEngineerTests {
 
     /**
-     * Method to validate the RBT.
+     * Method to validate the RBT by testing the properties of a RBT.
      * 
      * @param tree the RBT to validate
      * @return true if the RBT is valid, false otherwise
      */
     public boolean validateRBT(RbtAE tree) {
-        if (tree.root == null) {
+        if (tree.root == null) { // empty tree
             return true;
         }
 
-        if (tree.root.blackHeight != 1) {
+        if (tree.root.blackHeight != 1) { // root is black
             return false;
         }
 
-        int left = numBlack(tree.root.context[1]);
-        int right = numBlack(tree.root.context[2]);
+        int left = numBlack(tree.root.context[1]); // check black height of left subtree
+        int right = numBlack(tree.root.context[2]); // check black height of right subtree
 
-        if (left != right || left == -1) {
+        if (left != right || left == -1) { // check if left and right subtrees have same black height
             return false;
         }
 
-        return true;
+        return true; // if all tests pass, return true
     }
 
     /**
@@ -49,21 +45,21 @@ public class AlgorithmEngineerTests {
      * @return the number of black nodes in the path from the root to the given
      */
     private int numBlack(RbtAE.Node<IPokemon> node) {
-        if (node == null) {
+        if (node == null) { // empty node
             return 0;
         }
 
-        int left = numBlack(node.context[1]);
-        int right = numBlack(node.context[2]);
+        int left = numBlack(node.context[1]); // check black height of left subtree
+        int right = numBlack(node.context[2]); // check black height of right subtree
 
-        if (left != right || left == -1) {
+        if (left != right || left == -1) { // check if left and right subtrees have same black height
             return -1;
         }
 
-        if (node.blackHeight == 1) {
+        if (node.blackHeight == 1) { // if node is black, add 1 to black height
             return left + 1;
         } else {
-            return left;
+            return left; // if node is red, return black height
         }
     }
 
@@ -71,8 +67,6 @@ public class AlgorithmEngineerTests {
      * Tests remove method for:
      * case 1: deleted node is root.
      * case 2: sibling is red
-     * case 3: sibling is black and both children are black, parent is red
-     * case 4: sibling is black and both children are black, parent is black
      * 
      * @see RbtAE#remove(IPokemon) and
      *      RbtAE#fixRedBlackTreePropertiesAfterDelete(IPokemon)
@@ -109,7 +103,8 @@ public class AlgorithmEngineerTests {
             tree.insert(new PokemonAE("c"));
             tree.insert(new PokemonAE("e"));
 
-            tree.root.blackHeight = 1;
+            tree.root.blackHeight = 1; // set blackheights just to make sure validate() method
+                                       // works just this once
             tree.root.context[1].blackHeight = 1;
             tree.root.context[2].blackHeight = 0;
             tree.root.context[2].context[1].blackHeight = 1;
@@ -123,7 +118,7 @@ public class AlgorithmEngineerTests {
             // check that the tree size is correct
             assertEquals(4, tree.size);
 
-            // validate the tree
+            // validate the tree and check that the tree is correct
             assertTrue(validateRBT(tree));
             assertEquals(
                     "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='e'}, PokemonAE{name='c'} ]",
@@ -136,29 +131,40 @@ public class AlgorithmEngineerTests {
             assertEquals(1, tree.root.context[2].blackHeight);
             assertEquals(0, tree.root.context[1].context[2].blackHeight);
         }
+    }
 
+    /**
+     * Tests remove method for:
+     * case 3: sibling is black and both children are black, parent is red
+     * case 4: sibling is black and both children are black, parent is black
+     * 
+     * @see RbtAE#remove(IPokemon) and
+     *      RbtAE#fixRedBlackTreePropertiesAfterDelete(IPokemon)
+     */
+    @Test
+    public void testRBTRemove2() {
         // case 3: sibling is black and both children are black, parent is red
         {
             RbtAE tree = new RbtAE(); // set up tree
 
-            tree.insert(new PokemonAE("d"));
+            tree.insert(new PokemonAE("d")); // insert Pokemon
             tree.insert(new PokemonAE("b"));
             tree.insert(new PokemonAE("f"));
             tree.insert(new PokemonAE("a"));
             tree.insert(new PokemonAE("c"));
             tree.insert(new PokemonAE("e"));
-            PokemonAE pkm = new PokemonAE("g");
+            PokemonAE pkm = new PokemonAE("g"); // the Pokemon to be removed
             tree.insert(pkm);
 
             // check tree size
             assertEquals(7, tree.size);
 
-            tree.remove(pkm); // remove Pokemon
+            tree.remove(pkm); // remove Pokemon pkm
 
             // check that the tree size is correct
             assertEquals(6, tree.size);
 
-            // validate the tree
+            // validate the tree and check that the tree is correct
             assertTrue(validateRBT(tree));
             assertEquals(
                     "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='f'}, PokemonAE{name='a'}, PokemonAE{name='c'}, PokemonAE{name='e'} ]",
@@ -175,24 +181,23 @@ public class AlgorithmEngineerTests {
             tree.insert(new PokemonAE("a"));
             tree.insert(new PokemonAE("c"));
             tree.insert(new PokemonAE("g"));
-            PokemonAE pkm = new PokemonAE("e");
+            PokemonAE pkm = new PokemonAE("e"); // the Pokemon to be removed
             tree.insert(pkm);
 
             // check tree size
             assertEquals(7, tree.size);
 
-            tree.remove(pkm); // remove Pokemon
+            tree.remove(pkm); // remove Pokemon pkm
 
             // check that the tree size is correct
             assertEquals(6, tree.size);
 
-            // validate the tree
+            // validate the tree and check that the tree is correct
             assertTrue(validateRBT(tree));
             assertEquals(
                     "[ PokemonAE{name='d'}, PokemonAE{name='b'}, PokemonAE{name='f'}, PokemonAE{name='a'}, PokemonAE{name='c'}, PokemonAE{name='g'} ]",
                     tree.toLevelOrderString());
         }
-
     }
 
     /**
@@ -204,7 +209,7 @@ public class AlgorithmEngineerTests {
      *      RbtAE#fixRedBlackTreePropertiesAfterDelete(IPokemon)
      */
     @Test
-    public void testRBTRemove2() {
+    public void testRBTRemove3() {
         // case 5: sibling is black, left or right red child, "outer" nephew is black
         {
             RbtAE tree = new RbtAE(); // set up tree
@@ -212,14 +217,14 @@ public class AlgorithmEngineerTests {
             tree.insert(new PokemonAE("b"));
             tree.insert(new PokemonAE("a"));
             tree.insert(new PokemonAE("d"));
-            PokemonAE pkm = new PokemonAE("c");
+            PokemonAE pkm = new PokemonAE("c"); // the Pokemon to be removed
             tree.insert(pkm);
             tree.insert(new PokemonAE("f"));
             tree.insert(new PokemonAE("e"));
 
-            tree.remove(pkm); // remove Pokemon
+            tree.remove(pkm); // remove Pokemon pkm
 
-            // validate the tree
+            // validate the tree and check that the tree is correct
             assertTrue(validateRBT(tree));
             assertEquals(
                     "[ PokemonAE{name='b'}, PokemonAE{name='a'}, PokemonAE{name='e'}, PokemonAE{name='d'}, PokemonAE{name='f'} ]",
@@ -233,15 +238,15 @@ public class AlgorithmEngineerTests {
             tree.insert(new PokemonAE("b"));
             tree.insert(new PokemonAE("a"));
             tree.insert(new PokemonAE("d"));
-            PokemonAE pkm = new PokemonAE("c");
+            PokemonAE pkm = new PokemonAE("c"); // the Pokemon to be removed
             tree.insert(pkm);
             tree.insert(new PokemonAE("f"));
             tree.insert(new PokemonAE("e"));
             tree.insert(new PokemonAE("g"));
 
-            tree.remove(pkm); // remove Pokemon
+            tree.remove(pkm); // remove Pokemon pkm
 
-            // validate the tree
+            // validate the tree and check that the tree is correct
             assertTrue(validateRBT(tree));
             assertEquals(
                     "[ PokemonAE{name='b'}, PokemonAE{name='a'}, PokemonAE{name='f'}, PokemonAE{name='d'}, PokemonAE{name='g'}, PokemonAE{name='e'} ]",
@@ -311,27 +316,17 @@ public class AlgorithmEngineerTests {
         tree.insert(new PokemonAE("Pikachu"));
         tree.insert(new PokemonAE("Raichu"));
 
-        Iterator<IPokemon> iter = tree.iterator(); // get iterator
+        PokemonIteratorAE iter = tree.iterator(); // get iterator
 
         assertEquals("Charizard", iter.next().getName()); // test iterator
         assertEquals("Charmander", iter.next().getName());
         assertEquals("Charmeleon", iter.next().getName());
 
-        assertTrue(iter.hasNext()); // test iterator
+        assertTrue(iter.hasNext()); // test iterator for more elements, should be true
 
         assertEquals("Pikachu", iter.next().getName());
         assertEquals("Raichu", iter.next().getName());
 
-        assertTrue(!iter.hasNext()); // test iterator
-    }
-
-    /**
-     * Tests the Driver class.
-     * 
-     * @see Pokeylog.java
-     */
-    @Test
-    public void testDriver() {
-
+        assertTrue(!iter.hasNext()); // test iterator for no more elements
     }
 }
