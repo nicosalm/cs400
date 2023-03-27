@@ -749,7 +749,7 @@ public class RbtAE implements IRbt<IPokemon> {
      * @return an iterator of type PokemonIteratorAE over the values in this tree
      */
     @Override
-    public Iterator<IPokemon> iterator() {
+    public PokemonIteratorAE iterator() {
         return new PokemonIteratorAE((RbtAE.Node<IPokemon>) findMinimum(root));
     }
 
