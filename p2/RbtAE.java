@@ -118,15 +118,15 @@ public class RbtAE implements IRbt<IPokemon> {
 
         // if rightchild, left rotation
         if (child.isRightChild()) {
-            // Assign child left reference to parent right reference
+            // Change parent left reference to child right reference
             parent.context[2] = child.context[1];
-            // Assign parent to child left reference;
+            // Change parent reference of child to parent reference of parent
             child.context[1] = parent;
 
         } else { // if leftchild, right rotation
-            // Assign child right reference to parent left reference
+            // Change parent right reference to child left reference
             parent.context[1] = child.context[2];
-            // Assign parent to child right reference;
+            // Change parent reference of child to parent reference of parent
             child.context[2] = parent;
         }
 
@@ -140,7 +140,7 @@ public class RbtAE implements IRbt<IPokemon> {
             parent.context[0].context[1] = child;
         }
 
-        // Assign child parent reference to parent parent reference
+        // change parent reference of child to parent reference of parent
         child.context[0] = parent.context[0];
         parent.context[0] = child;
     }
@@ -158,7 +158,7 @@ public class RbtAE implements IRbt<IPokemon> {
             throw new NullPointerException("Cannot replace null node.");
         }
         if (nodeToReplace.context[0] == null) {
-            // we are replacing the root
+            // replace the root
             if (replacementNode != null)
                 replacementNode.context[0] = null;
             this.root = replacementNode;
@@ -166,7 +166,7 @@ public class RbtAE implements IRbt<IPokemon> {
             // set the parent of the replacement node
             if (replacementNode != null)
                 replacementNode.context[0] = nodeToReplace.context[0];
-            // do we have to attach a new left or right child to our parent?
+            // replace the node in the parent
             if (nodeToReplace.isRightChild()) {
                 nodeToReplace.context[0].context[2] = replacementNode;
             } else {
@@ -289,8 +289,6 @@ public class RbtAE implements IRbt<IPokemon> {
         root.blackHeight = 1; // root is always black
     }
 
-    // < –––––––––––––- REMOVE ––––––––––––––––––>
-
     /**
      * Removes the value data from the tree if the tree contains the value. This
      * method will attempt to rebalance the tree after the removal and should be
@@ -327,7 +325,7 @@ public class RbtAE implements IRbt<IPokemon> {
 
         // Node has zero or one child
         if (node.context[1] == null || node.context[2] == null) {
-            movedUpNode = deleteNodeWithZeroOrOneChild(node);
+            movedUpNode = deleteNodeZeroOrOneChild(node);
             deletedNodeColor = node.blackHeight;
         }
 
@@ -340,12 +338,12 @@ public class RbtAE implements IRbt<IPokemon> {
             node.data = successorNode.data;
 
             // Delete inorder successor just as we would delete a node with 0 or 1 child
-            movedUpNode = deleteNodeWithZeroOrOneChild(successorNode);
+            movedUpNode = deleteNodeZeroOrOneChild(successorNode);
             deletedNodeColor = successorNode.blackHeight;
         }
 
         if (deletedNodeColor == 1) {
-            fixRedBlackPropertiesAfterDelete(movedUpNode);
+            enforceRBTreePropertiesAfterRemove(movedUpNode);
 
             // Remove the temporary NIL node
             if (movedUpNode.getClass() == NilNode.class) {
@@ -364,7 +362,7 @@ public class RbtAE implements IRbt<IPokemon> {
      * @param node the node to be deleted
      * @return the node that was moved up to replace the deleted node
      */
-    private Node<IPokemon> deleteNodeWithZeroOrOneChild(Node<IPokemon> node) {
+    private Node<IPokemon> deleteNodeZeroOrOneChild(Node<IPokemon> node) {
         // Node has ONLY a left child: replace by its left child
         if (node.context[1] != null) {
             replaceNode(node, node.context[1]);
@@ -405,7 +403,7 @@ public class RbtAE implements IRbt<IPokemon> {
      * 
      * @param node the node to replace
      */
-    private void fixRedBlackPropertiesAfterDelete(Node<IPokemon> node) {
+    private void enforceRBTreePropertiesAfterRemove(Node<IPokemon> node) {
         // Case 1: Examined node is root, end of recursion
         if (node == root) {
             // node.blackHeight = 1;
@@ -419,7 +417,7 @@ public class RbtAE implements IRbt<IPokemon> {
             sibling.blackHeight = 1;
             node.context[0].blackHeight = 0;
 
-            // ... and rotate
+            // rotate
             if (node == node.context[0].context[1]) {
                 // rotate left
                 Node<IPokemon> gP = node.context[0].context[0];
@@ -433,7 +431,7 @@ public class RbtAE implements IRbt<IPokemon> {
                 rightChild.context[1] = node.context[0];
                 node.context[0].context[0] = rightChild;
 
-                replaceParentsChild(gP, node.context[0], rightChild);
+                replaceParentsChild(gP, node.context[0], rightChild); // replace parents child
             } else {
                 // rotate right
                 Node<IPokemon> gP = node.context[0].context[0];
@@ -447,12 +445,12 @@ public class RbtAE implements IRbt<IPokemon> {
                 leftChild.context[2] = node.context[0];
                 node.context[0] = leftChild;
 
-                replaceParentsChild(gP, node.context[0], leftChild);
+                replaceParentsChild(gP, node.context[0], leftChild); // replace parents child
             }
             sibling = getSibling(node); // Get new sibling for fall-through to cases 3-6
         }
 
-        // Cases 3+4: Black sibling with two black children
+        // Cases 3 and 4: Black sibling, two black children
         if (isBlack(sibling.context[1]) && isBlack(sibling.context[2])) {
             sibling.blackHeight = 0;
 
@@ -461,15 +459,15 @@ public class RbtAE implements IRbt<IPokemon> {
                 node.context[0].blackHeight = 1;
             }
 
-            // Case 4: Black sibling with two black children + black parent
+            // Case 4: Black sibling with two black children, black parent
             else {
-                fixRedBlackPropertiesAfterDelete(node.context[0]);
+                enforceRBTreePropertiesAfterRemove(node);
             }
         }
 
-        // Case 5+6: Black sibling with at least one red child
+        // Case 5 and 6: Black sibling, at least one red child
         else {
-            handleBlackSiblingWithAtLeastOneRedChild(node, sibling);
+            handleBlackSiblingRedChild(node, sibling);
         }
     }
 
@@ -480,11 +478,11 @@ public class RbtAE implements IRbt<IPokemon> {
      * @param node    the node being removed
      * @param sibling the sibling of the node being removed
      */
-    private void handleBlackSiblingWithAtLeastOneRedChild(Node<IPokemon> node, Node<IPokemon> sibling) {
+    private void handleBlackSiblingRedChild(Node<IPokemon> node, Node<IPokemon> sibling) {
         boolean nodeIsLeftChild = node == node.context[0].context[1];
 
-        // Case 5: Black sibling with at least one red child + "outer nephew" is black
-        // --> Recolor sibling and its child, and rotate around sibling
+        // Case 5: Black sibling with at least one red child and "outer nephew" is black
+        // Recolor sibling and its child, and rotate around sibling
         if (nodeIsLeftChild && isBlack(sibling.context[2])) {
             sibling.context[1].blackHeight = 0;
             rotate(sibling.context[1], sibling); // rotate right
@@ -496,10 +494,8 @@ public class RbtAE implements IRbt<IPokemon> {
             sibling = node.context[0].context[1];
         }
 
-        // Fall-through to case 6...
-
-        // Case 6: Black sibling with at least one red child + "outer nephew" is red
-        // --> Recolor sibling + parent + sibling's child, and rotate around parent
+        // Case 6: Black sibling with at least one red child and "outer nephew" is red
+        // Recolor sibling + parent + sibling's child, and rotate around parent
         sibling.blackHeight = node.context[0].blackHeight;
         node.context[0].blackHeight = 1;
         if (nodeIsLeftChild) {
@@ -518,12 +514,12 @@ public class RbtAE implements IRbt<IPokemon> {
      * @return the sibling of the given node
      */
     private Node<IPokemon> getSibling(Node<IPokemon> node) {
-        Node<IPokemon> parent = node.context[0];
-        if (node == parent.context[1]) {
+        Node<IPokemon> parent = node.context[0]; // parent of node
+        if (node == parent.context[1]) { // node is left child
             return parent.context[2];
-        } else if (node == parent.context[2]) {
+        } else if (node == parent.context[2]) { // node is right child
             return parent.context[1];
-        } else {
+        } else { // node is not a child of its parent
             throw new IllegalStateException("Parent is not a child of its grandparent");
         }
     }
@@ -535,12 +531,13 @@ public class RbtAE implements IRbt<IPokemon> {
      * @return true if the node is black, or null
      */
     private boolean isBlack(Node<IPokemon> node) {
-        return node == null || node.blackHeight == 1;
+        return node == null || node.blackHeight == 1; // null nodes are black
     }
 
     /**
      * A class representing a NIL node. This is a singleton class, so that there is
-     * only one NIL.
+     * only one NIL. This is necessary for the fixRedBlackPropertiesAfterDelete to
+     * be a constant time operation.
      * 
      */
     @SuppressWarnings("unchecked") // Safe cast
@@ -560,17 +557,17 @@ public class RbtAE implements IRbt<IPokemon> {
      * @param newChild the new child node
      */
     private void replaceParentsChild(Node<IPokemon> parent, Node<IPokemon> oldChild, Node<IPokemon> newChild) {
-        if (parent == null) {
+        if (parent == null) { // parent is root
             root = newChild;
-        } else if (parent.context[1] == oldChild) {
+        } else if (parent.context[1] == oldChild) { // parent is left child
             parent.context[1] = newChild;
-        } else if (parent.context[2] == oldChild) {
+        } else if (parent.context[2] == oldChild) { // parent is right child
             parent.context[2] = newChild;
-        } else {
+        } else { // parent is not a child of its parent
             throw new IllegalStateException("Node is not a child of its parent");
         }
 
-        if (newChild != null) {
+        if (newChild != null) { // newChild is not NIL
             newChild.context[0] = parent;
         }
     }
@@ -582,13 +579,11 @@ public class RbtAE implements IRbt<IPokemon> {
      * @return the minimum node in the tree
      */
     private Node<IPokemon> findMinimum(Node<IPokemon> root) {
-        while (root.context[1] != null) {
+        while (root.context[1] != null) { // while root has a left child
             root = root.context[1];
         }
         return root;
     }
-
-    // < –––––––––––––- END REMOVE ––––––––––––––––––>
 
     /**
      * Get the size of the tree (its number of nodes).
@@ -774,13 +769,14 @@ public class RbtAE implements IRbt<IPokemon> {
      */
     @Override
     public IPokemon get(String searchKey) throws NoSuchElementException {
-        if (searchKey == null) {
+        if (searchKey == null) { // cannot search for null key
             throw new NullPointerException("Cannot search for null key!");
         }
 
-        Node<IPokemon> current = this.root;
-        while (current != null) {
-            int compare = searchKey.compareTo(current.data.getName());
+        Node<IPokemon> current = this.root; // start at the root
+
+        while (current != null) { // while we have not reached a null node yet
+            int compare = searchKey.compareTo(current.data.getName()); // compare
             if (compare == 0) {
                 // we found our value
                 return current.data;
@@ -792,8 +788,7 @@ public class RbtAE implements IRbt<IPokemon> {
                 current = current.context[2];
             }
         }
-
-        throw new NoSuchElementException("No such key in the tree!");
+        throw new NoSuchElementException("No such key in the tree!"); // key not found
     }
 
     /**
