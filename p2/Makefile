@@ -4,7 +4,7 @@ AlgorithmEngineerTests.class: AlgorithmEngineerTests.java PokemonAE.java RbtAE.j
 RbtAE.class: RbtAE.java PokemonAE.java
 	javac RbtAE.java
 
-PokemonDW.class: PokemonAE.java
+PokemonAE.class: PokemonAE.java
 	javac PokemonAE.java
 
 runTests: AlgorithmEngineerTests.class
