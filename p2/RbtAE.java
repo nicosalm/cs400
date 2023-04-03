@@ -86,63 +86,69 @@ public class RbtAE implements IRbt<IPokemon> {
     protected int size = 0; // the number of values in the tree
 
     /**
-     * Performs the rotation operation on the provided nodes within this tree. When
-     * the provided
-     * child is a left child of the provided parent, this method will perform a
-     * right rotation. When
-     * the provided child is a right child of the provided parent, this method will
-     * perform a left
-     * rotation. When the provided nodes are not related in one of these ways, this
-     * method will
-     * throw an IllegalArgumentException.
-     * 
-     * @param child  is the node being rotated from child to parent position
-     *               (between these two node
-     *               arguments)
+     * Performs the rotation operation on the provided nodes within this tree.
+     * When the provided child is a left child of the provided parent, this
+     * method will perform a right rotation. When the provided child is a
+     * right child of the provided parent, this method will perform a left rotation.
+     * When the provided nodes are not related in one of these ways, this method
+     * will throw an IllegalArgumentException.
+     * @param child is the node being rotated from child to parent position
+     *      (between these two node arguments)
      * @param parent is the node being rotated from parent to child position
-     *               (between these two node
-     *               arguments)
-     * @throws IllegalArgumentException when the provided child and parent node
-     *                                  references are not
-     *                                  initially (pre-rotation) related that way
+     *      (between these two node arguments)
+     * @throws IllegalArgumentException when the provided child and parent
+     *      node references are not initially (pre-rotation) related that way
      */
     private void rotate(Node<IPokemon> child, Node<IPokemon> parent) throws IllegalArgumentException {
-        if (parent == null) {
-            root = child;
+        int compare = child.data.compareTo(parent.data);
+        // Throw IllegalArgumentException
+        if(!(compare < 0 || compare > 0)) {
+            throw new IllegalArgumentException("The provided child and parent node references are not related");
         }
-
-        if (!child.context[0].equals(parent)) {
-            throw new IllegalArgumentException(
-                    "Provided nodes are related in the appropriate way.");
+        // Preform Right Rotation when child < parent (left child) < 0
+        // steps: (parent = P child = C)
+        // 1) P left = C right, C right parent = P
+        // 2) C parent = P parent
+        // 3) root = C or P parent right = C or P parent left = C
+        // 4) C right = P, P parent = C
+        if(compare < 0) {
+            parent.context[1] = child.context[2]; // P left = C right
+            if(child.context[2] != null) { // if C right is null
+                child.context[2].context[0] = parent; // C right parent = P
+            }
+            child.context[0] = parent.context[0]; // C parent = P parent
+            if(parent.context[0] == null) { // P is root
+                this.root = child; // root = C
+            } else if(parent == parent.context[0].context[2]) { // P is right child
+                parent.context[0].context[2] = child; // P parent right = C
+            } else { // P is left child
+                parent.context[0].context[1] = child; // P parent left = C
+            }
+            child.context[2] = parent; // C right = P
+            parent.context[0] = child; // P parent = C
         }
-
-        // if rightchild, left rotation
-        if (child.isRightChild()) {
-            // Change parent left reference to child right reference
-            parent.context[2] = child.context[1];
-            // Change parent reference of child to parent reference of parent
-            child.context[1] = parent;
-
-        } else { // if leftchild, right rotation
-            // Change parent right reference to child left reference
-            parent.context[1] = child.context[2];
-            // Change parent reference of child to parent reference of parent
-            child.context[2] = parent;
+        // Preform Left Rotation when child > parent (right child) > 0
+        // steps: (parent = P child = C)
+        // 1) P right = C left, C left parent = P
+        // 2) C parent = P parent
+        // 3) root = C or P parent left = C or P parent right = C
+        // 4) C left = P, P parent = C
+        if(compare > 0) {
+            parent.context[2] = child.context[1]; // P right = C left
+            if(child.context[1] != null) { // if C left null
+                child.context[1].context[0] = parent; // C left parent = P
+            }
+            child.context[0] = parent.context[0]; // C parent = P parent
+            if(parent.context[0] == null) { // P is root
+                this.root = child; // root = C
+            } else if(parent == parent.context[0].context[1]) { // P is left child
+                parent.context[0].context[1] = child; // P parent left = C
+            } else { // P is right child
+                parent.context[0].context[2] = child; // P parent right = C
+            }
+            child.context[1] = parent; // C left = P
+            parent.context[0] = child; // P parent = C
         }
-
-        // Assign parent parent reference to child parent reference (if parent is root,
-        // child becomes root)
-        if (parent.equals(root)) {
-            root = child;
-        } else if (parent.isRightChild()) {
-            parent.context[0].context[2] = child;
-        } else {
-            parent.context[0].context[1] = child;
-        }
-
-        // change parent reference of child to parent reference of parent
-        child.context[0] = parent.context[0];
-        parent.context[0] = child;
     }
 
     /**
