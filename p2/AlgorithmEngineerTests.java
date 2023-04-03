@@ -1,5 +1,15 @@
+
+// noSuchElementException
+import java.util.NoSuchElementException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.IOException;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -11,6 +21,8 @@ import org.junit.jupiter.api.Test;
  * 3. The iterator functionality
  */
 public class AlgorithmEngineerTests {
+
+    private static final String NoSuchElementException = null;
 
     /**
      * Method to validate the RBT by testing the properties of a RBT.
@@ -329,4 +341,92 @@ public class AlgorithmEngineerTests {
 
         assertTrue(!iter.hasNext()); // test iterator for no more elements
     }
+
+    // ---- ---- ---- P2W4 Integration Week Tests ---- ---- ---- //
+
+    /**
+     * We will test the integration of the RBT and the BackendBD by adding and
+     * removing and searching for Pokemon from the backend.
+     * 
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    @Test
+    public void testRBTIntegrationAddRemoveSearchFromBackend() throws IllegalArgumentException, IOException {
+
+        // set up tree
+        IRbt<IPokemon> tree = new RbtAE(); // set up tree
+        ICatalogReader reader = new CatalogReaderDW();
+        BackendBD backend = new BackendBD(tree, reader);
+
+        // add Pokemon to backend:
+        String bulbasaur = "\"[\'Overgrow\', \'Chlorophyll\']\",1,1,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,49,5120,70,318,45,Seed Pokémon,49,1059860,0.7,45,Fushigidaneフシギダネ,Bulbasaur,88.1,1,65,65,45,grass,poison,6.9,1,0";
+        backend.addPokemon(bulbasaur);
+
+        String ivysaur = "\"[\'Overgrow\', \'Chlorophyll\']\",2,2,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,49,5120,70,405,45,Seed Pokémon,62,1059860,1,45,Fushigisouフシギソウ,Ivysaur,130.1,1,80,80,60,grass,poison,13,1,0";
+        backend.addPokemon(ivysaur);
+
+        String venausaur = "\"[\'Overgrow\', \'Chlorophyll\']\",3,3,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,49,5120,70,625,45,Seed Pokémon,100,1059860,2.4,45,Fushigibanaフシギバナ,Venusaur,1000.0,1,100,100,80,grass,poison,100,1,0";
+        backend.addPokemon(venausaur);
+
+        // validate they entered the tree
+        assertTrue(tree.contains(new PokemonAE("Bulbasaur")));
+        assertTrue(tree.contains(new PokemonAE("Ivysaur")));
+        assertTrue(tree.contains(new PokemonAE("Venusaur")));
+        assertTrue(!tree.contains(new PokemonAE("Charmander"))); // check erroneous add
+
+        // we have confirmed that the Pokemon are in the tree, now let's see if we can
+        // search them up:
+
+        assertEquals("Bulbasaur", backend.searchFor("Bulbasaur").getName());
+        assertEquals("Ivysaur", backend.searchFor("Ivysaur").getName());
+        assertEquals("Venusaur", backend.searchFor("Venusaur").getName());
+        assertThrows(NoSuchElementException.class, () -> backend.searchFor("Charmander")); // check erroneous search
+        assertThrows(NullPointerException.class, () -> backend.searchFor(null)); // check erroneous search
+
+        // now let's remove some Pokemon from the tree and see if they are removed
+        backend.removePokemon("Bulbasaur");
+        assertTrue(!tree.contains(new PokemonAE("Bulbasaur")));
+
+        backend.removePokemon("Ivysaur");
+        assertTrue(!tree.contains(new PokemonAE("Ivysaur")));
+
+        // now let's try to remove a Pokemon that does not exist
+        assertThrows(NoSuchElementException.class, () -> backend.removePokemon("Charmander"));
+        assertThrows(NullPointerException.class, () -> backend.removePokemon(null));
+
+        // We've confirmed that the Pokemon are in the tree, we've confirmed that we can
+        // search for them, and we've confirmed that we can remove them. This means that
+        // the RBT and the BackendBD are integrated correctly.
+
+        /**
+         * public PokemonDW(String name, int pokedexNumber, String classification,
+         * PokemonType primaryType, Optional<PokemonType> secondaryType,
+         * boolean isLegendary,
+         * int hp, int attack, int defense, int spAttack, int spDefense, int speed, int
+         * baseStatTotal,
+         * String abilityNames, long experienceGrowthFactor, int
+         * baseStepsNeededToHatchEgg, int baseHappiness,
+         * Optional<Float> heightInMeters, Optional<Float> percentMale) {
+         */
+
+        // add Pokemon
+
+    }
+
+    @Test
+    public void testRBTIntegration2() {
+
+    }
+
+    @Test
+    public void testDataWrangler1() {
+
+    }
+
+    @Test
+    public void testDataWrangler2() {
+
+    }
+
 }
