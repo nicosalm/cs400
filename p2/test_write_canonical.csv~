@@ -1,0 +1,4 @@
+abilities,against_bug,against_dark,against_dragon,against_electric,against_fairy,against_fight,against_fire,against_flying,against_ghost,against_grass,against_ground,against_ice,against_normal,against_poison,against_psychic,against_rock,against_steel,against_water,attack,base_egg_steps,base_happiness,base_total,capture_rate,classfication,defense,experience_growth,height_m,hp,japanese_name,name,percentage_male,pokedex_number,sp_attack,sp_defense,speed,type1,type2,weight_kg,generation,is_legendary
+"['Shields Down']",,,,,,,,,,,,,,,,,,,100,6400,70,500,,Meteor Pokémon,60,1059860,0.3,60,,Minior,,774,100,60,120,Rock,Flying,,,0
+"['Reckless', 'Rock Head', 'Adaptability', 'Mold Breaker']",,,,,,,,,,,,,,,,,,,92,10240,70,460,,Hostile Pokémon,65,1000000,1.0,70,,Basculin,50.0,550,80,55,98,Water,,,,0
+"['Multitype']",,,,,,,,,,,,,,,,,,,120,30720,0,720,,Alpha Pokémon,120,1250000,3.2,120,,Arceus,,493,120,120,120,Normal,,,,1
