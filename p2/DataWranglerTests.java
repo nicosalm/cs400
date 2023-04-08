@@ -1,11 +1,11 @@
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class DataWranglerTests {
@@ -14,6 +14,7 @@ public class DataWranglerTests {
 
     /**
      * Checks that no exceptions are thrown when loading the canonical (valid) CSV file, {@code pokemon.csv}.
+     *
      * @throws IOException
      */
     @Test
@@ -33,6 +34,7 @@ public class DataWranglerTests {
      *     <li>{@code type2} (nullable)</li>
      *     <li>{@code weight_kg} (nullable)</li>
      * </ul>
+     *
      * @throws IOException
      */
     @Test
@@ -47,6 +49,7 @@ public class DataWranglerTests {
      * Tests that no exceptions are thrown when parsing sample CSV lines in the format written by {@link ICatalogReader#writeToFile(String, List)}.
      * As an example, the original {@code pokemon.csv} file includes type matchup multiplier fields,
      * but the write method omits them. This will check every nullable field.
+     *
      * @throws IOException
      */
     @Test
@@ -60,6 +63,7 @@ public class DataWranglerTests {
     /**
      * Checks that no exceptions are thrown when reading odd (but valid) CSV lines,
      * including those with empty strings.
+     *
      * @throws IOException
      */
     @Test
@@ -75,63 +79,64 @@ public class DataWranglerTests {
      * Checks that {@link IllegalArgumentException} is thrown by {@link ICatalogReader#readFromFile(String)}
      * when given a invalid file extension.
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testBadFileExtensionThrowsIAE() throws IOException {
+    @Test
+    public void testBadFileExtensionThrowsIAE() {
         var cr = new CatalogReaderDW();
-        cr.readFromFile("pokemon.txt");
+        assertThrows(IllegalArgumentException.class, () -> cr.readFromFile("pokemon.txt"));
     }
 
     /**
      * Checks that {@link IllegalArgumentException} is thrown by {@link ICatalogReader#readFromFile(String)}
      * when given an invalid file name.
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testBadFilenameThrowsIAE() throws IOException {
+    @Test
+    public void testBadFilenameThrowsIAE() {
         var cr = new CatalogReaderDW();
-        cr.readFromFile(CANONICAL_FILENAME + ".txt");
+        assertThrows(IllegalArgumentException.class, () -> cr.readFromFile(CANONICAL_FILENAME + ".txt"));
     }
 
     /**
      * Checks that {@link FileNotFoundException} is thrown by {@link ICatalogReader#readFromFile(String)}
      * when given a nonexistent file name.
      */
-    @Test(expected = FileNotFoundException.class)
-    public void testMissingFileThrowsFNFE() throws IOException {
+    @Test
+    public void testMissingFileThrowsFNFE() {
         var cr = new CatalogReaderDW();
-        cr.readFromFile("dne.csv");
+        assertThrows(FileNotFoundException.class, () -> cr.readFromFile("dne.csv"));
     }
 
     /**
      * Checks that {@link IllegalArgumentException} is thrown by {@link ICatalogReader#readCsvLineIntoPokemon(String)}
      * when given a line that doesn't have all columns.
-     * @throws IOException
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidCsvLineWithMissingColumns() throws IOException {
+    @Test
+    public void testInvalidCsvLineWithMissingColumns() {
         var cr = new CatalogReaderDW();
-        cr.readCsvLineIntoPokemon("not,41,columns");
+        assertThrows(IllegalArgumentException.class, () -> cr.readCsvLineIntoPokemon("not,41,columns"));
     }
 
     /**
      * Checks that {@link IllegalArgumentException} is thrown by {@link ICatalogReader#readCsvLineIntoPokemon(String)}
      * when given a line that has too many columns.
-     * @throws IOException
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidCsvLineWithExtraColumns() throws IOException {
+    @Test
+    public void testInvalidCsvLineWithExtraColumns() {
         var cr = new CatalogReaderDW();
-        cr.readCsvLineIntoPokemon("\"['Overgrow', 'Chlorophyll']\",1,1,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,49,5120,70,318,45,Seed Pokémon,49,1059860,0.7,45,Fushigidaneフシギダネ,Bulbasaur,88.1,1,65,65,45,grass,poison,6.9,1,0" + ",,,");
+        assertThrows(IllegalArgumentException.class, () -> {
+            cr.readCsvLineIntoPokemon("\"['Overgrow', 'Chlorophyll']\",1,1,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,49,5120,70,318,45,Seed Pokémon,49,1059860,0.7,45,Fushigidaneフシギダネ,Bulbasaur,88.1,1,65,65,45,grass,poison,6.9,1,0" + ",,,");
+        });
     }
 
     /**
      * Checks that {@link IllegalArgumentException} is thrown by {@link ICatalogReader#readCsvLineIntoPokemon(String)}
      * when given a line whose data is malformed.
-     * @throws IOException
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidCsvLine() throws IOException {
+    @Test
+    public void testInvalidCsvLine() {
         var cr = new CatalogReaderDW();
-        cr.readCsvLineIntoPokemon("\"['Overgrow', 'Chlorophyll']\",1,1,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,[MALFORMED],5120,70,318,45,Seed Pokémon,49,1059860,0.7,45,Fushigidaneフシギダネ,Bulbasaur,88.1,1,65,65,45,grass,poison,6.9,1,0");
+        assertThrows(IllegalArgumentException.class, () -> {
+            cr.readCsvLineIntoPokemon("\"['Overgrow', 'Chlorophyll']\",1,1,1,0.5,0.5,0.5,2,2,1,0.25,1,2,1,1,2,1,1,0.5,[MALFORMED],5120,70,318,45,Seed Pokémon,49,1059860,0.7,45,Fushigidaneフシギダネ,Bulbasaur,88.1,1,65,65,45,grass,poison,6.9,1,0");
+        });
     }
     // endregion
 
@@ -139,6 +144,7 @@ public class DataWranglerTests {
      * Sample dummy entries are used for this test.
      * Checks that no exceptions are thrown when writing to file with {@link ICatalogReader#writeToFile(String, List)}.
      * Also checks for name and type equality between the entries read/written to.
+     *
      * @throws IOException
      */
     @Test
@@ -165,6 +171,7 @@ public class DataWranglerTests {
      * Canonical entries from the {@code pokemon.csv} file are used for this test.
      * Checks that no exceptions are thrown when writing to file with {@link ICatalogReader#writeToFile(String, List)}.
      * Also checks for name and type equality between the entries read/written to.
+     *
      * @throws IOException
      */
     @Test
@@ -216,6 +223,7 @@ public class DataWranglerTests {
     /**
      * Checks correctness of output when loading the canonical file, adding a sample Pokemon, searching for it,
      * and exporting the loaded Pokemon to file.
+     *
      * @throws IOException
      */
     @Test
@@ -293,13 +301,15 @@ public class DataWranglerTests {
     /**
      * Checks that duplicates aren't allowed in {@link RbtAE}.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void CodeReviewOfAlgorithmEngineerRbtInsertDuplicateThrowsIAE() {
         var rbt = new RbtAE();
         var norm = PokemonDW.from("a", PokemonType.GHOST);
         var duped = PokemonDW.from("a");
         rbt.insert(norm);
-        rbt.insert(duped); // <- should throw IAE
+        assertThrows(IllegalArgumentException.class, () -> {
+            rbt.insert(duped); // <- should throw IAE
+        });
     }
 
     /**

@@ -97,12 +97,16 @@ public class FrontendFD implements IFrontend {
             backend.loadDataFromFile(filename);
         } catch (FileNotFoundException e1) {
             System.out.println("Error: File path doesn't exist");
+            return;
         } catch(IllegalArgumentException e2) { 
             System.out.println("Error: File is not in CSV format");
+            return;
         } catch(SecurityException e3) {
             System.out.println("Error: Program doesn't have permission to read the file");
+            return;
         } catch(IOException e4) {
             System.out.println("Error: I/O error occurs while reading");
+            return;
         }
         // Print if no exceptions thrown
         System.out.println("CSV loaded!");
@@ -168,8 +172,10 @@ public class FrontendFD implements IFrontend {
             backend.addPokemon(pokemonCsvFmtStr);
         } catch(IllegalArgumentException e1) {
             System.out.println("Error: Pokemon already exists in red-black tree or input is malformed");
+            return;
         } catch(IOException e2) {
             System.out.println("Error: I/O error occured while reading");
+            return;
         }
         // Print if no exceptions thrown
         System.out.println("Pokemon added!");
@@ -190,6 +196,7 @@ public class FrontendFD implements IFrontend {
             backend.removePokemon(name);
         } catch(IllegalArgumentException e) {
             System.out.println("Error: No Pokemon with name " + name + " was found in the red-black tree");
+            return;
         }
         // Print if no exceptions thrown
         System.out.println("Pokemon deleted!");
@@ -209,13 +216,16 @@ public class FrontendFD implements IFrontend {
             backend.saveDataToFile(filename);
         } catch (FileNotFoundException e1) {
             System.out.println("Error: File path doesn't exist");
+            return;
         } catch(SecurityException e3) {
             System.out.println("Error: Program doesn't have permission to read the file");
+            return;
         } catch(IOException e4) {
             System.out.println("Error: I/O error occured while reading");
+            return;
         }
         // Write to file and report success if no exceptions thrown
-        System.out.println("Exported to '" + filename + "'!");
+        System.out.println("Exported to " + filename + "!");
     }
 
     /**

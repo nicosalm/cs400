@@ -81,7 +81,7 @@ public class FrontendDeveloperTests {
 
         String output = tester.checkOutput();
         // Test Save Data Command
-        if( !(output.startsWith("=== Welcome to Pokeylog™, Trainer! ===") && (output.contains("CSV loaded!"))) ) {
+        if( !(output.startsWith("=== Welcome to Pokeylog™, Trainer! ===") && (output.contains("Exported to FileName!"))) ) {
             fail("Error: testSaveDataCommand failed.");
         }
     }
@@ -105,7 +105,7 @@ public class FrontendDeveloperTests {
     }
 
     // Integration Tests
-    // FrontendDeveloperIntegration test AddPokemon method
+    // FrontendDeveloperIntegration test addPokemon Method
     @Test
     void FDIntegrationTestAddPokemon() {
         TextUITester tester = new TextUITester("A\nCharizard\nQ\n");
@@ -124,7 +124,7 @@ public class FrontendDeveloperTests {
         // Test Add Pokemon Output
         if( !(output.startsWith("=== Welcome to Pokeylog™, Trainer! ===") && (output.contains("insert called"))
             && (output.contains("Pokemon added!")) )) {
-            fail("Error: FrontendDeveloperIntegrationTestAddPokemon failed.");
+            fail("Error: FDIntegrationTestAddPokemon failed.");
         }
     }
 
@@ -143,13 +143,11 @@ public class FrontendDeveloperTests {
         frontend.runCommandLoop();
         scanner.close();
 
-        // get called
-        // remove called
         String output = tester.checkOutput();
-        // Test Add Pokemon Output
+        // Test Remove Pokemon Output
         if( !(output.startsWith("=== Welcome to Pokeylog™, Trainer! ===") && (output.contains("get called\nremove called"))
             && (output.contains("Pokemon deleted!")) )) {
-            fail("Error: FrontendDeveloperIntegrationTestRemovePokemon failed.");
+            fail("Error: FDIntegrationTestRemovePokemon failed.");
         }
     }
 
