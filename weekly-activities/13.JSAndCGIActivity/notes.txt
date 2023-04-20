@@ -1,0 +1,4 @@
+1. compile backend and Java SearchBackend "name=corn&calories=true&protein=true"
+
+2. view in web browser @ http://{IP}/cgi-bin/13.JSAndCGIActivity/searchScript.cgi?name=corn&calories=true&protein=true
+
