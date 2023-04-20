@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Search Frontend</title>
+    <meta name="author" content="CS_USERNAME">
+      <script>
+        let cgiLocation = "http://GCP_VM_IP_ADDRESS/cgi-bin/13.JSAndCGIActivity/searchScript.cgi"; 
+
+        function searchClicked() {
+          // get all attributes checked to assemble the query string
+          // for our cgi script
+          let args = "?";
+          args += "name="+document.querySelectorAll("#name-input")[0].value;
+          document.querySelectorAll(".attributes").forEach( 
+            n => {
+              if (n.checked) args += "&" + n.value + "=true";
+            }
+          );
+          // print the arguments string for debugging
+          console.log(args);
+          // now fetch the results of the script and pass
+          // them into the showResults method
+          fetch(cgiLocation + args)
+              .then( (response) => response.json() )
+              .then( (json) => { console.log(json); showResults(json); } );
+        }
+
+        function showResults(json) {
+          let displayAttributes = [];
+          // get all check attributes and add to displayAttributes array
+          document.querySelectorAll(".attributes").forEach(
+            (element) => {
+              if (element.checked) displayAttributes.push(element.value);
+            }
+          );
+          // print the displayAttriutes array for debugging
+          console.log(displayAttributes);
+          let htmlList = "";
+          // assemble the list elements for the results as a string
+          // that contains HTML code
+          json.forEach( (dataItem) => {
+            htmlList += "<li>" + dataItem.name;
+            // TODO: Uncomment the following line to displays the attributes on
+            //       the displayAttribute array in a comma separated list after
+            //       the name of each data item.
+            displayAttributes.forEach( (attr) => htmlList += ", " + attr + ": " + dataItem[attr] );
+            
+            htmlList += "</li>";
+          } );
+          // set the generated HTML as the innerHTML of the #resultsList element
+          document.querySelectorAll("#resultsList")[0].innerHTML = htmlList;
+          // make results list and heading visible
+          document.querySelectorAll(".results").forEach( (element) => element.style = "display: block;" );
+        }
+    </script>
+    <style>
+      .results {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Cereals Search Interface</h1>
+    <ul>
+      <li>Search cereals by name: <input type="text" id="name-input"></li>
+      <li>Show attributes:
+	    <input class="attributes" type="checkbox" value="calories">calories
+	    <input class="attributes" type="checkbox" value="protein">protein
+	    <input class="attributes" type="checkbox" value="fat">fat
+	    <input class="attributes" type="checkbox" value="sodium">sodium
+      </li>
+      <li><input type="button" value="search" onclick="searchClicked()"></li>
+    </ul>
+    <h2 class="results">Search Results:</h1>
+    <ul class="results" id="resultsList">
+    </ul>
+  </body>
+</html>
