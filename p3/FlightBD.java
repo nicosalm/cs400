@@ -1,4 +1,8 @@
-
+/**
+ * Placeholder class. This class should be replaced with a real class.
+ * 
+ * @author Nico
+ */
 public class FlightBD implements IFlight {
 
     private String destinationCityName;
@@ -11,20 +15,17 @@ public class FlightBD implements IFlight {
 
     @Override
     public ICity sourceCity() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sourceCity'");
+        return new CityBD("Atlanta");
     }
 
     @Override
     public ICity destinationCity() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'destinationCity'");
+        return new CityBD(destinationCityName);
     }
 
     @Override
     public double flightDuration() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'flightDuration'");
+        return 2.0;
     }
 
     @Override
@@ -43,6 +44,11 @@ public class FlightBD implements IFlight {
     public String departureTime() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'departureTime'");
+    }
+
+    @Override
+    public String toString() {
+        return "FlightBD [destinationCityName=" + destinationCityName + ", flightDuration=" + flightDuration + "]";
     }
 
 }
