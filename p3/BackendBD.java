@@ -3,6 +3,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/**
+ * This class implements the {@link IBackend} interface. It uses a FlightGraph
+ * to store the cities and flights, and a FlightReader to read in the data from
+ * a file. It also implements the methods to add a city, search for a flight,
+ * and get the shortest path between two cities.
+ * 
+ * @author Nico
+ */
 public class BackendBD implements IBackend {
 
     private IFlightGraph<ICity, Double> graph;
@@ -63,7 +71,7 @@ public class BackendBD implements IBackend {
         // for each flight in the source city, check if it goes to the destination city;
         // return the earliest flight if there are multiple
         for (IFlight flight : sourceCity.getFlightList()) {
-            if (flight.destinationCity().equals(destinationCity)) {
+            if (flight.destinationCity().getCityName().equals(destinationCity.getCityName())) {
                 return flight;
             }
         }

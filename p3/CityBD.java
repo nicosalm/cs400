@@ -1,5 +1,10 @@
 import java.util.List;
 
+/**
+ * Placeholder class. This class should be replaced with a real class.
+ * 
+ * @author Nico
+ */
 public class CityBD implements ICity {
 
     private String sourceCityName;
@@ -7,12 +12,15 @@ public class CityBD implements ICity {
 
     public CityBD(String sourceCityName) {
         this.sourceCityName = sourceCityName;
-        this.flightList = List.of(new FlightBD("destinationCityName", 0.0));
+        if (sourceCityName == null) {
+            throw new IllegalArgumentException("City name cannot be null");
+        }
+        this.flightList = List.of(new FlightBD("Chicago", 3.0), new FlightBD("Houston", 6.0));
     }
 
     @Override
     public String getCityName() {
-        return "City name";
+        return sourceCityName;
     }
 
     @Override

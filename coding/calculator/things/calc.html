@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <title>Simple Calcu-sooner!</title>
+    <script>
+      function add() {
+        let object = {
+          // json
+          x: 7,
+          3: "three",
+          fruits: ["apple", "orange", "watermelon"],
+          pet: {
+            name: "birdie",
+          },
+        };
+        // object.x = 3;
+        // object[3] = "three";
+        // object["x"] = 4;
+        console.log(object);
+
+        //	  return;
+
+        let inputs = document.querySelectorAll("input");
+        let firstOperand = inputs[0];
+        let secondOperand = inputs[1];
+
+        let a = parseInt(firstOperand.value);
+        let b = parseInt(secondOperand.value);
+
+        let result = inputs[3];
+        //result.value = a+b;
+        //location.href = "https://www.google.com/search?q="+a+"%2B"+b;
+        //location.href = "http://35.239.193.140/cgi-bin/add.cgi?a="+a+"&b="+b;
+        fetch("http://35.224.104.59/cgi-bin/add.cgi?a=" + a + "&b=" + b)
+          .then((response) => response.json())
+          .then((obj) => {
+            result.value = obj.answer;
+            console.log(obj);
+          });
+      }
+    </script>
+  </head>
+  <body>
+    <input type="text" />
+    +
+    <input type="text" />
+    <input type="button" value="=" onclick="add();" />
+    <input type="text" />
+  </body>
+</html>
