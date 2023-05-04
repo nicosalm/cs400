@@ -22,23 +22,11 @@ public interface IFlight {
    * @return the flightDuration from the airport to the destination (e.g. <i>Delhi</i>).
    */
   double flightDuration();
-
-  /**
-   * 
-   * @return this returns the name of the airline 
-   */
-  String airline();
   
   /**
    * 
    * @return this returns the flightCode of the flight 
    */
   String flightCode();
-  
-  /**
-   * 
-   * @return this returns the departure time of the flight
-   */
-  String departureTime();
   
 }

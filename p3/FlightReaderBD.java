@@ -41,12 +41,14 @@ public class FlightReaderBD implements IFlightReader {
     }
 
     @Override
-    public ICity readDOTLineIntoCity(String cityDOTFmtStr) throws IllegalArgumentException, IOException {
+    public List<ICity> readDOTLineIntoCity(String cityDOTFmtStr) throws IllegalArgumentException, IOException {
         // we don't use this
         if (cityDOTFmtStr == null) {
             throw new IllegalArgumentException("CityDOTFmtStr cannot be null");
         } else {
-            return new CityBD(cityDOTFmtStr);
+            List<ICity> lst = new ArrayList<>();
+            lst.add(new CityBD(cityDOTFmtStr));
+            return lst;
         }
     }
 

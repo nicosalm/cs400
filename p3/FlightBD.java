@@ -29,21 +29,8 @@ public class FlightBD implements IFlight {
     }
 
     @Override
-    public String airline() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'airline'");
-    }
-
-    @Override
     public String flightCode() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'flightCode'");
-    }
-
-    @Override
-    public String departureTime() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'departureTime'");
+        return "ABC123";
     }
 
     @Override

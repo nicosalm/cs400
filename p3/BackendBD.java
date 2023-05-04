@@ -1,5 +1,6 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -93,7 +94,7 @@ public class BackendBD implements IBackend {
     public String getStatisticsString(String cityName) throws NoSuchElementException {
 
         // check to see if the city exists
-        if (!graph.containsNode(new CityBD(cityName))) {
+        if (!graph.containsNode(new CityDW(cityName, new ArrayList<>()))) {
             throw new NoSuchElementException("The city " + cityName + " does not exist.");
         }
 
@@ -117,28 +118,51 @@ public class BackendBD implements IBackend {
         return sb.toString();
     }
 
-    /**
-     * Adds a city given by a valid DOT line.
-     *
-     * @param cityDOTFmtStr the DOT line to serialize into a City.
-     * @throws IllegalArgumentException if the City with name {@code cityName}
-     *                                  already exists in the FlightGraph
-     *                                  or {@code cityDOTFmtStr} is malformed
-     * @throws IOException              if an I/O error occurs while reading
-     * @implNote Consider using
-     *           {@link IFlightReader#readCsvLineIntoCity(String cityCsvFmtStr)} to
-     *           create the City instance
-     *           and then add it into the FlightGraph.
-     * @see IFlightReader#readDOTLineIntoCity(String)
-     * @see IFlightGraph#insertNode(Comparable)
-     */
     @Override
-    public void addCity(String cityDOTFmtStr) throws IllegalArgumentException, IOException {
-        if (graph.containsNode(reader.readDOTLineIntoCity(cityDOTFmtStr))) {
-            throw new IllegalArgumentException("The city already exists.");
+    public void addCity(String cityStr) {
+        graph.insertNode(new CityDW(cityStr, new ArrayList<>()));
+    }
+
+    /**
+     * Adds a flight between two cities. If the cities do not exist in the graph, it
+     * adds them.
+     * 
+     * @param sourceCity
+     * @param destinationCity
+     * @param flightDuration
+     */
+    public void addFlight(String sourceCity, String destinationCity, double flightDuration) {
+
+        // check for bad things
+        if (sourceCity == null || destinationCity == null) {
+            throw new IllegalArgumentException("The source and destination cities cannot be null.");
         }
-        // add the city to the graph if it doesn't already exist
-        graph.insertNode(reader.readDOTLineIntoCity(cityDOTFmtStr));
+
+        if (flightDuration < 0) {
+            throw new IllegalArgumentException("The flight duration cannot be negative.");
+        }
+
+        if (sourceCity.equals(destinationCity)) {
+            throw new IllegalArgumentException("The source and destination cities cannot be the same.");
+        }
+
+        if (graph.containsEdge(graph.getCity(sourceCity), graph.getCity(destinationCity))) {
+            throw new IllegalArgumentException("The flight already exists.");
+        }
+
+        ICity source = graph.getCity(sourceCity);
+        ICity destination = graph.getCity(destinationCity);
+
+        // check to see if the cities exist in the graph, if not add them
+        if (!graph.containsNode(source)) {
+            graph.insertNode(source);
+        }
+        if (!graph.containsNode(destination)) {
+            graph.insertNode(destination);
+        }
+
+        // add the flight to the source city
+        graph.insertEdge(source, destination, flightDuration);
     }
 
     /**
@@ -165,6 +189,28 @@ public class BackendBD implements IBackend {
     @Override
     public double getShortestPathCost(String sourceCityName, String destinationCityName) {
         return graph.shortestPathCost(graph.getCity(sourceCityName), graph.getCity(destinationCityName));
+    }
+
+    /**
+     * Calls FlightGraph#getShortestPathDataWithRequiredEdge, additional
+     * functionality added by the AE.
+     */
+    @Override
+    public List<ICity> getShortestPathDataWithRequiredEdge(String sourceCityName, String destinationCityName,
+            String pointA, String pointB) {
+        return graph.shortestPathDataWithRequiredEdge(graph.getCity(sourceCityName), graph.getCity(destinationCityName),
+                graph.getCity(pointA), graph.getCity(pointB));
+    }
+
+    /**
+     * Calls FlightGraph#getShortestPathCostWithRequiredEdge, additional
+     * functionality added by the AE.
+     */
+    @Override
+    public double getShortestPathCostWithRequiredEdge(String sourceCityName, String destinationCityName, String pointA,
+            String pointB) {
+        return graph.shortestPathCostWithRequiredEdge(graph.getCity(sourceCityName), graph.getCity(destinationCityName),
+                graph.getCity(pointA), graph.getCity(pointB));
     }
 
 }

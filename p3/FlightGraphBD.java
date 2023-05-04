@@ -58,8 +58,7 @@ public class FlightGraphBD implements IFlightGraph<ICity, Double> {
 
     @Override
     public boolean containsEdge(ICity pred, ICity succ) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'containsEdge'");
+        return true;
     }
 
     @Override
@@ -104,6 +103,21 @@ public class FlightGraphBD implements IFlightGraph<ICity, Double> {
     public IFlight getFlight(String flightCode) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getFlight'");
+    }
+
+    @Override
+    public List<ICity> shortestPathDataWithRequiredEdge(ICity start, ICity end, ICity requiredEdgeStart,
+            ICity requiredEdgeEnd) {
+        List<ICity> path = new ArrayList<ICity>();
+        path.addAll(Arrays.asList(new CityBD("Madison"), new CityBD("Chicago"), new CityBD("New York"),
+                new CityBD("London")));
+        return path;
+    }
+
+    @Override
+    public double shortestPathCostWithRequiredEdge(ICity start, ICity end, ICity requiredEdgeStart,
+            ICity requiredEdgeEnd) {
+        return 45.0;
     }
 
 }

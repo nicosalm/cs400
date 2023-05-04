@@ -1,0 +1,12 @@
+digraph {
+    Seattle->Chicago [label="5-1234"]
+    Chicago->New_York [label="4-4567"] 
+    New_York->Atlanta [label="5-7645"]
+    Seattle->San_Francisco [label="2-2382"]
+    San_Francisco->Los_Angeles [label="2-8760"]
+    Los_Angeles->Albuquerque [label="2-6873"]
+    Memphis->Detroit [label="12-7985"]
+    Albuquerque->Detroit [label="3-8092"]
+    Chicago->San_Francisco [label="9-9186"]
+    Chicago->Albuquerque [label="1-1010"]
+}
