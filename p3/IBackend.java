@@ -25,18 +25,18 @@ public interface IBackend {
     void loadDataFromFile(String filename) throws FileNotFoundException, IllegalArgumentException, SecurityException, IOException;
 
     /**
-     * Calls {@link IFlightGraph#getEdge(String)} to search for a flight (an edge) between two cities in the backend's flightGraph.
+     * Calls {@link IFlightGraph#getEdge(Object, Object)} to search for a flight (an edge) between two cities in the backend's flightGraph.
      *
      *  @return flight - the flight between two cities in the backend's flightGraph
      * @throws NoSuchElementException if no element matches the search key
-     * @see IFlightGraph#getEdge(NodeType pred, NodeType succ), IFlightGraph#containsEdge(NodeType pred, NodeType succ)
+     * @see IFlightGraph#getEdge(Object, Object), IFlightGraph#containsEdge(NodeType pred, NodeType succ)
      */
     IFlight searchForFlight(String sourceCityName, String destinationCityName) throws NoSuchElementException;
   
     /**
      * Statistics string for the Frontend to parse and display.
      * 
-     * @param ICity, the city to get statistics for. 
+     * @param cityName, the city to get statistics for.
      * @throws NoSuchElementException if the provided ICity object does not exist.
      * 
      * @return a String of relevant statistics array about a city for the Frontend to display. 
@@ -44,18 +44,20 @@ public interface IBackend {
     String getStatisticsString(String cityName) throws NoSuchElementException;
   
     /**
-     * Adds a city given by a valid DOT line.
+     * Adds a city.
      *
-     * @param cityDOTFmtStr the DOT line to serialize into a City.
+     * @param cityStr the name of the City.
      * @throws IllegalArgumentException if the City with name {@code cityName} already exists in the FlightGraph
      * or {@code cityDOTFmtStr} is malformed
      * @throws IOException   if an I/O error occurs while reading
-     * @implNote Consider using {@link IFlightReader#readCsvLineIntoCity(String cityCsvFmtStr)} to create the City instance
+     * @implNote Consider using {@link IFlightReader#readDOTLineIntoCity(String)} to create the City instance
      * and then add it into the FlightGraph.
      * @see IFlightReader#readDOTLineIntoCity(String)
-     * @see IFlightGraph#insertNode(Comparable)
+     * @see IFlightGraph#insertNode(Object)
      */
-    void addCity(String cityDOTFmtStr) throws IllegalArgumentException, IOException;
+    void addCity(String cityStr) throws IllegalArgumentException, IOException;
+
+    void addFlight(String sourceCity, String destinationCity, double flightDuration);
 
     /**
      * Calls FlightGraph#getShortestPathData which invokes Dijkstra's shortest path algorithm to determine the shortest path.
@@ -67,8 +69,20 @@ public interface IBackend {
     /**
      * Calls the FlightGraph's getShortestPathCost which returns the cost of the shortest path as calculated in FlightGraph#shortestPathData
      * Calls {@link IFlightGraph#getCity(String)} to get the actual city object first
-     * @return doube cost, the cost of the shortest flight sequence.
+     * @return double cost, the cost of the shortest flight sequence.
      */
     double getShortestPathCost(String sourceCityName, String destinationCityName);
-  
+    
+    /**
+     * Calls FlightGraph#shortestPathDataWithRequiredEdge which invokes Dijkstra's shortest path algorithm to determine the shortest path. The added functionality is it must pass through two gives points.
+     * Calls {@link IFlightGraph#getCity(String)} to get the actual city object first
+     * @return an List of City nodes representing the shortest path including point A and point B. 
+     */
+    List<ICity> getShortestPathDataWithRequiredEdge(String sourceCityName, String destinationCityName, String pointA, String pointB);
+    
+    /**
+     * Calls the FlightGraph's getShortestPathDataWIthRequiredEdge which returns the cost of the shortest path which pasts between two points (two cities) pointA and pointB.
+     * @return double cost, the cost of the shortest flight sequence
+     */
+    double getShortestPathCostWithRequiredEdge(String sourceCityName, String destinationCityName, String pointA, String pointB);
 }

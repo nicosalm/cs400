@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -7,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -103,11 +106,32 @@ public class BackendDeveloperTests {
 
         BackendBD backend = new BackendBD(new FlightGraphBD(), new FlightReaderBD());
 
-        // expect an IllegalArgumentException to be thrown when adding a duplicate city
-        assertThrows(IllegalArgumentException.class, () -> backend.addCity("Madison"));
-
         // addCity provides data to FlightGraphBD's insertNode method as intended
         backend.addCity("Berlin");
+    }
+
+    @Test
+    public void testAddFlight() {
+        // add an edge to the Flightgraph using BackendBD's addFlight method and check
+        // that the edge was added correctly; duplicate edges should not be added to the
+        // graph and should throw an IllegalArgumentException
+
+        BackendBD backend = new BackendBD(new FlightGraphBD(), new FlightReaderBD());
+
+        // expect an IllegalArgumentException to be thrown when adding a null edge
+        assertThrows(IllegalArgumentException.class, () -> backend.addFlight(null, null, 0));
+
+        // expect an IllegalArgumentException to be thrown when adding an edge with a
+        // weight < 0
+        assertThrows(IllegalArgumentException.class, () -> backend.addFlight("Madison", "Chicago", -1));
+
+        // expect an IllegalArgumentException to be thrown when adding an edge with src
+        // and dst the same
+        assertThrows(IllegalArgumentException.class, () -> backend.addFlight("Madison", "Madison", 1));
+
+        // add an edge which already exists in the graph
+        assertThrows(IllegalArgumentException.class, () -> backend.addFlight("Madison", "Chicago", 1));
+
     }
 
     /**
@@ -154,5 +178,108 @@ public class BackendDeveloperTests {
         double cost = backend.getShortestPathCost("Madison", "London");
         assertEquals(21.0, cost);
 
+    }
+
+    /**
+     * Checks {@link FrontendFD#addCommand()} properly handles exceptions that
+     * occur.
+     */
+    @Test
+    public void codeReviewOfFrontendDeveloper() {
+
+        // test valid input
+        {
+            TextUITester uiTester = new TextUITester("T\nMadison\nT\nChicago\nA\nMadison\nChicago\n15\nQ\n");
+
+            try (Scanner scanner = new Scanner(System.in)) {
+                FrontendFD frontend = new FrontendFD(scanner, new BackendFD());
+                frontend.runCommandLoop();
+                String output = uiTester.checkOutput();
+                assertTrue(output.contains("Flight added!"));
+            }
+        }
+
+    }
+
+    /**
+     * Checks that {@link FrontendFD#searchCommand()} reports corrects information
+     * when in a state where no exception is thrown (i.e., here we assume inputs are
+     * valid).
+     */
+    @Test
+    public void codeReviewOfFrontendDeveloper2() {
+        TextUITester uiTester = new TextUITester("S\nMadison\nChicago\nQ\n");
+
+        try (Scanner scanner = new Scanner(System.in)) {
+            FrontendFD frontend = new FrontendFD(scanner, new BackendBD(new FlightGraphBD(), new FlightReaderBD()));
+            frontend.runCommandLoop();
+            String output = uiTester.checkOutput();
+            System.out.println(output);
+            assertTrue(output.contains("The shortest route is: ")); // checks that no exception occurs w/ valid inputs
+        }
+    }
+
+    /**
+     * This test checks adding cities; adding flights between those cities; and
+     * calculating the shortest path between two cities.
+     */
+    @Test
+    public void integrationTest1() {
+
+        // creates a backend working with a FlightGraphAE and a FlightReaderDW
+        var backend = new BackendBD(new FlightGraphAE(), new FlightReaderDW());
+
+        // adds all components to the flight graph
+        backend.addCity("Madison");
+        backend.addCity("Chicago");
+        backend.addCity("Milwaukee");
+        backend.addCity("LA");
+
+        backend.addFlight("Madison", "Chicago", 2);
+        backend.addFlight("Madison", "Milwaukee", 1.5);
+
+        backend.addFlight("Chicago", "Milwaukee", 1);
+
+        backend.addFlight("Milwaukee", "LA", 4.1);
+        backend.addFlight("Chicago", "LA", 3.9);
+
+        // correctly calculates the shortest path between Madison and LA
+        var shortestPath = backend.getShortestPathData("Madison", "LA");
+        var expectedShortestPath = new ArrayList<String>(Arrays.asList("Madison", "Milwaukee", "LA"));
+
+        assertEquals(expectedShortestPath, shortestPath.stream().map(ICity::getCityName).collect(Collectors.toList()));
+    }
+
+    /**
+     * Tests calculating a shortest flight with a required layover.
+     */
+    @Test
+    public void integrationTest2() {
+        // creates a backend working with a FlightGraphAE and a FlightReaderDW
+        var backend = new BackendBD(new FlightGraphAE(), new FlightReaderDW());
+
+        // adds all components to the flight graph
+        backend.addCity("Madison");
+        backend.addCity("Chicago");
+        backend.addCity("Milwaukee");
+        backend.addCity("LA");
+
+        backend.addFlight("Madison", "Chicago", 2);
+        backend.addFlight("Madison", "Milwaukee", 1.5);
+
+        backend.addFlight("Chicago", "Milwaukee", 1);
+
+        backend.addFlight("Milwaukee", "LA", 4.1);   
+        backend.addFlight("Chicago", "LA", 3.9);
+
+        // correctly calculates the shortest path between Madison and LA
+        var shortestPath = backend.getShortestPathDataWithRequiredEdge("Madison", "LA", "Chicago", "Milwaukee");
+        var expectedShortestPath = new ArrayList<String>(Arrays.asList("Madison", "Chicago", "Milwaukee", "LA"));
+
+        // tests a case where the provided edge does not exist
+        assertThrows(NoSuchElementException.class,
+                () -> backend.getShortestPathDataWithRequiredEdge("Madison", "LA", "Milwaukee", "Chicago"));
+
+        assertEquals(expectedShortestPath, shortestPath.stream().map(ICity::getCityName).collect(Collectors.toList()));
     }
 }
