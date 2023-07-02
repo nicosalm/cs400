@@ -1,2 +1,4 @@
 # cs400
-* Spring 2023 with Gary Dahl.
+* University of Wisconsin-Madison
+* Spring 2023
+* Gary Dahl
