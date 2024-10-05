@@ -30,6 +30,10 @@ public class RbtAE implements IRbt<IPokemon> {
     protected static class Node<IPokemon> {
         public IPokemon data;
         public int blackHeight;
+        public Node(IPokemon data) {
+            this.data = data;
+            this.blackHeight = 0;
+        }
 
         // The context array stores the context of the node in the tree:
         // - context[0] is the parent reference of the node,
@@ -38,10 +42,6 @@ public class RbtAE implements IRbt<IPokemon> {
         @SuppressWarnings("unchecked")
         public Node<IPokemon>[] context = (Node<IPokemon>[]) new Node[3];
 
-        public Node(IPokemon data) {
-            this.data = data;
-            this.blackHeight = 0;
-        }
 
         /**
          * @return true when this node has a parent and is the right child of that
@@ -103,7 +103,7 @@ public class RbtAE implements IRbt<IPokemon> {
         int compare = child.data.compareTo(parent.data);
         // Throw IllegalArgumentException
         if(!(compare < 0 || compare > 0)) {
-            throw new IllegalArgumentException("The provided child and parent node references are not related");
+            throw new IllegalArgumentException("");
         }
         // Preform Right Rotation when child < parent (left child) < 0
         // steps: (parent = P child = C)
