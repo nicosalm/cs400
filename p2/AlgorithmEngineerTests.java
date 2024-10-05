@@ -33,10 +33,10 @@ public class AlgorithmEngineerTests {
         if (tree.root == null) { // empty tree
             return true;
         }
-
         if (tree.root.blackHeight != 1) { // root is black
             return false;
         }
+
 
         int left = numBlack(tree.root.context[1]); // check black height of left subtree
         int right = numBlack(tree.root.context[2]); // check black height of right subtree
@@ -74,6 +74,7 @@ public class AlgorithmEngineerTests {
         }
     }
 
+
     /**
      * Tests remove method for:
      * case 1: deleted node is root.
@@ -85,11 +86,10 @@ public class AlgorithmEngineerTests {
     @Test
     public void testRBTRemove1() {
         // case 1: deleted node is root
-        {
+    {
             RbtAE tree = new RbtAE(); // set up tree
             PokemonAE pkm = new PokemonAE("Charmander");
             tree.insert(pkm); // insert Pokemon
-
             // check that the tree is not empty
             assertEquals(1, tree.size);
             assertTrue(!tree.isEmpty());
